@@ -1,5 +1,6 @@
 \documentclass[a4paper, oneside, 11pt]{book}
 \usepackage[utf8]{inputenc}
+\usepackage[printonlyused]{acronym}
 
 \newif\ifdraft
 \drafttrue % Sagt aus, dass dieses Dokument ein Entwurf ist. Somit wird todonotes aktiviert. Zum deaktivieren diese Zeile auskommentieren oder auf \draftfalse setzen.
@@ -15,12 +16,20 @@
 	\tableofcontents
 	\listoffigures
 	\listoftables
-	
+	\pagebreak
+	\input{acronyms}
+
+
 	\input{erklaerung}
 	
 	\mainmatter
-	\input{Kapitel/Beispiel/beispiel}
-	\input{Kapitel/Beispiel/beispiel}
+	\input{Kapitel/Einleitung/einleitung}
+	\input{Kapitel/Theory/theory}
+	\input{Kapitel/Praxis/praxis}
+	\input{Kapitel/Ergebnisse/ergebnisse}
+	\input{Kapitel/Diskussion/diskussion}
+	\input{Kapitel/Fazit/Fazit}
+
 
 	\bibliographystyle{alphadin} 
 	\bibliography{literatur}
@@ -28,5 +37,5 @@
 	\clearpage
 	\appendix
 	\pagenumbering{Roman}
-	\input{Kapitel/Beispiel/beispiel}
+
 \end{document}

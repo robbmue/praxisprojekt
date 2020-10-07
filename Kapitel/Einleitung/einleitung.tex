@@ -1,0 +1,73 @@
+\chapter{Einleitung}
+
+\section{Netzlink Informationstechnik GmbH}
+
+\subsection{Geschichte} 
+Die Netzlink wurde 1997 am Standort Braunschweig gegründet als Personengesellschaft. 
+Die Firma beschäftigte sich anfangs mit dem Handel mit Soft- und Hardwareprodukten, bis 1999 die erste Partnerschaft mit IBM eingegangen wird und die Netzlink Informationstechnik GmbH entstand.
+2012 entwickelt die Firma ihr eigenens Cloud-Angebot "Nubo-Cloud" und expandierte in der zwischenzeit auch nach Kassel und Hannover. 
+2018 wird der IT-Campus in Braunschweig fertiggestellt und bezogen, nicht nur von Netzlink sondern auch von weiteren Firmen aus dem IT-Umfeld. 
+2019 wurde der neuste Standort in Polen, Netzlink Ploska, eröffnet und das Rechenzentrum zu einem Geocluster ausgebaut. 
+\cite{Netzlink_history}
+
+\subsection{Allgemeines}
+Mittlerweile ist Netzlink an die 100 Mitarbeiter groß und bietet von Storage und Rechenzentrumsthemen bis hin zu Cloud-Service und Virtualisierung, maßgenschneiderte Lösungen für den Kunden an.
+\cite{Netzlink_history}
+
+
+
+\section{Kunde}
+Einer dieser Kunden ist das \ac{HZI}.
+Das \ac{HZI} ist eine vom Bund finanzierte Instanz, an der Wissenschaftler alle möglichen Aspekte von Infektionskrankheiten untersuchen:
+Wie werden diese ausgelöst und übertragen?
+Wie werden sie vom Körper bekämpft
+Welche Wirkstoffe können bei der Infektionsbekämpfung hilfreich sein?
+Warum sind einige Menschen anfälliger für Infektionskrankheiten als andere?
+Mithilfe der Beantwortung dieser Fragen sollen Infektionskrankheiten im der aktuellen Zeit besser verstanden und bekämpft oder präventioniert werden. 
+\cite{HZI_about}
+\\
+Aufgrund der Ausrichtung des \ac{HZI} beschäftiget sich das Institut im Jahr 2020 mit dem \ac{COVID-19}.
+
+\section{Produkt SORMAS}
+\subsection{Geschichte}
+2014 haben sich unter der Organisation des \ac{HZI} öffentliche Gesundheitsinstitutionen Deutschlands und Nigerias, sowie Forschungsinstitute und eine Software Entwicklungs Firma zusammengeschlossen um das Produkt \ac{SORMAS} zu entiwckeln.
+Die Software hatte den Zweck, den Ebola Ausbruch in Westafrika 2014/2015 einzudämmen.
+In ihr können Fälle erfasst und gemanaged werden, um so Infektionsketten zu durchbrechen.
+2016 wurde die Applikation zu einer Open Source Software migriert um die Unabhängigkeit von IT Firmen zu garantieren.
+Der erste Test der Software im Juli 2015 zeigt die folgenden Stärken der Applikation auf:
+\begin{itemize}
+    \item Überwachung und Management von Infektionsfällen in einer Applikation
+    \item Resourcen für Kommunikation wurden gespart
+    \item Informationen kommten umgehend zur Verfügung gestellt werden
+    \item Entscheidungsträger konnten aufgrund der Daten schnellere und bessere Maßnahmen festlegen
+\end{itemize}
+\cite{SORMAS_history}
+
+\subsection{COVID19}
+Die \ac{COVID-19} Pandemisituation in Jahr 2020 stellte auf der ganzen Welt Gunsundheitssysteme auf die Probe. 
+Um das Virus bestmöglich bekämpfen zu können wurde \ac{SORMAS} vom \ac{HZI} angepasst, um mit der Applikation nicht nur infizierte Personen managen zu können, sondern auch Kontaktpersonen zu erfassen.
+Die neu entstandene Applikation bekam den Namen \ac{SORMAS-ÖGD} und wird vom Bund allen deutschen Gesundheitsämtern kostenlos zur Verfügung gestellt. 
+\cite{SORMAS_covid}
+\\
+Deutschland hat insgesamt rund 400 \ac{GAs} \cite{GAs} von denen zum Zeitpunkt der Verfassung dieses Dokuments\footnote{07.10.2020} bereits 53 mit \ac{SORMAS-ÖGD} ausgestattet sind.
+Diese Zahl nimmt jedoch stetig zu.  
+An dieser Stelle kommt Netzlink ins Spiel: 
+Die Firma hat durch eine Ausschreibung einen Vertrag mit dem Bund abgeschlossen, nach dem Netzlink jedem \ac{GA}, das interessiert ist, eine \ac{SORMAS-ÖGD}-Instanz zur Verfügung stellt.
+
+\section{Problemstellung}
+\subsection{IST-Zustand}
+Aktuell stellt Netzlink die \ac{SORMAS}-Instanzen auf ihrer OpenStack\footnote{https://www.openstack.org/}-Infrastruktur zur Verfügung. 
+\\
+Die Daten, die in der \ac{SORMAS}-Datenbank gespeichert werden sind sogenannte besonders schützenswerte Daten.
+\begin{quote}
+    Bei Gesundheitsdaten gelten jedoch weitaus strengere Regeln als bei einfachen personenbezogenen Daten. Gesundheits-daten sind sensible, besonders schützenswerte Daten und werden im Gesetz als „besondere Kategorie“ personen-bezogener Daten behandelt. Grundsätzlich ist es untersagt, Gesundheitsdaten zu verarbeiten. Dieses Verbot gilt nur dann nicht, wenn einer der gesetzlich geregelten Ausnah-mefälle gegeben ist (Artikel 9 Abs. 2–4 DSGVO). 
+    \cite{Gesundheitsdatenschutz}
+\end{quote}
+Für die Netzlink als Provider der Applikation bedeutet das, dass die Daten der einzelnen \ac{GAs} streng getrennt werden müssen. 
+Es dürfen nicht zwei Instanzen von \ac{SORMAS-ÖGD} auf der selben Maschine gehostet werden, da durch das Ausnutzen von Sicherheitslücken eventuell ein \ac{GA} die Daten eines Anderen einsehen könnte.
+Um diese Abgrenzung zu garantieren rollt Netzlink mithilfe von Ansible\footnote{https://www.ansible.com/} für jedes \ac{GA} eine eigene \ac{VM} aus, um die Datensicherheit zu gewährleisten.
+Auf der jeweiligen \ac{VM} werden dann mittels Docker \footnote{https://www.docker.com/} 
+
+
+
+

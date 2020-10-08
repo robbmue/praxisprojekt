@@ -66,7 +66,18 @@ Die Daten, die in der \ac{SORMAS}-Datenbank gespeichert werden sind sogenannte b
 Für die Netzlink als Provider der Applikation bedeutet das, dass die Daten der einzelnen \ac{GAs} streng getrennt werden müssen. 
 Es dürfen nicht zwei Instanzen von \ac{SORMAS-ÖGD} auf der selben Maschine gehostet werden, da durch das Ausnutzen von Sicherheitslücken eventuell ein \ac{GA} die Daten eines Anderen einsehen könnte.
 Um diese Abgrenzung zu garantieren rollt Netzlink mithilfe von Ansible\footnote{https://www.ansible.com/} für jedes \ac{GA} eine eigene \ac{VM} aus, um die Datensicherheit zu gewährleisten.
-Auf der jeweiligen \ac{VM} werden dann mittels Docker \footnote{https://www.docker.com/} 
+Auf der jeweiligen \ac{VM} werden dann mittels Docker \footnote{https://www.docker.com/} mehrere Container gestartet, die gemeinsam die \ac{SORMAS-ÖGD} Appliaktion darstellen.
+\\
+Für jedes \ac{GA} eine eigene VM zu bauen verbraucht unnötig viele Resourcen:
+\begin{itemize}
+    \item Arbeitsspeicher für den Overhead der \ac{VM}
+    \item Arbeitsspeicher und CPU Resourcen um das Betriebssystem auf der \ac{VM} zu betreiben
+    \item Zeit um die \ac{VM} auszurollen und zu starten 
+\end{itemize}
+
+\subsection{SOLL-Zustand}
+Die resourcenschonendere Lösung wäre, eine Containerplattform wie Kubernetes zu nutzen. 
+
 
 
 

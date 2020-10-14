@@ -1,53 +1,7 @@
 \chapter{Einleitung}
 
-\section{Netzlink Informationstechnik GmbH}
-\todo{Gehört nicht in eine BA}
-
-\subsection{Geschichte} 
-Die Netzlink wurde 1997 am Standort Braunschweig gegründet als Personengesellschaft. 
-Die Firma beschäftigte sich anfangs mit dem Handel mit Soft- und Hardwareprodukten, bis 1999 die erste Partnerschaft mit IBM eingegangen wird und die Netzlink Informationstechnik GmbH entstand.
-2012 entwickelt die Firma ihr eigenens Cloud-Angebot "Nubo-Cloud" und expandierte in der zwischenzeit auch nach Kassel und Hannover. 
-2018 wird der IT-Campus in Braunschweig fertiggestellt und bezogen, nicht nur von Netzlink sondern auch von weiteren Firmen aus dem IT-Umfeld. 
-2019 wurde der neuste Standort in Polen, Netzlink Ploska, eröffnet und das Rechenzentrum zu einem Geocluster ausgebaut. 
-\cite{Netzlink_history}
-
-\subsection{Allgemeines}
-Mittlerweile ist Netzlink an die 100 Mitarbeiter groß und bietet von Storage und Rechenzentrumsthemen bis hin zu Cloud-Service und Virtualisierung, maßgenschneiderte Lösungen für den Kunden an.
-\cite{Netzlink_history}
-
-
-
-\section{Kunde}
-\todo{Vielleicht in eine Fußnote?}
-Einer dieser Kunden ist das \ac{HZI}.
-Das \ac{HZI} ist eine vom Bund finanzierte Instanz, an der Wissenschaftler alle möglichen Aspekte von Infektionskrankheiten untersuchen:
-Wie werden diese ausgelöst und übertragen?
-Wie werden sie vom Körper bekämpft
-Welche Wirkstoffe können bei der Infektionsbekämpfung hilfreich sein?
-Warum sind einige Menschen anfälliger für Infektionskrankheiten als andere?
-Mithilfe der Beantwortung dieser Fragen sollen Infektionskrankheiten im der aktuellen Zeit besser verstanden und bekämpft oder präventioniert werden. 
-\cite{HZI_about}
-\\
-Aufgrund der Ausrichtung des \ac{HZI} beschäftiget sich das Institut im Jahr 2020 mit dem \ac{COVID-19}.
-
-\section{Produkt SORMAS}
-\subsection{Geschichte}
-2014 haben sich unter der Organisation des \ac{HZI} öffentliche Gesundheitsinstitutionen Deutschlands und Nigerias, sowie Forschungsinstitute und eine Software Entwicklungs Firma zusammengeschlossen um das Produkt \ac{SORMAS} zu entiwckeln.
-Die Software hatte den Zweck, den Ebola Ausbruch in Westafrika 2014/2015 einzudämmen.
-In ihr können Fälle erfasst und gemanaged werden, um so Infektionsketten zu durchbrechen.
-2016 wurde die Applikation zu einer Open Source Software migriert um die Unabhängigkeit von IT Firmen zu garantieren.
-Der erste Test der Software im Juli 2015 zeigt die folgenden Stärken der Applikation auf:
-\begin{itemize}
-    \item Überwachung und Management von Infektionsfällen in einer Applikation
-    \item Resourcen für Kommunikation wurden gespart
-    \item Informationen kommten umgehend zur Verfügung gestellt werden
-    \item Entscheidungsträger konnten aufgrund der Daten schnellere und bessere Maßnahmen festlegen
-\end{itemize}
-\cite{SORMAS_history}
-
-\subsection{COVID19}
 Die \ac{COVID-19} Pandemisituation in Jahr 2020 stellte auf der ganzen Welt Gunsundheitssysteme auf die Probe. 
-Um das Virus bestmöglich bekämpfen zu können wurde \ac{SORMAS} vom \ac{HZI} angepasst, um mit der Applikation nicht nur infizierte Personen managen zu können, sondern auch Kontaktpersonen zu erfassen.
+Um das Virus bestmöglich bekämpfen zu können wurde das \ac{SORMAS}\footnote{\input{Kapitel/Einleitung/footnotes/sormas}} vom \ac{HZI}\footnote{\input{Kapitel/Einleitung/footnotes/hzi}} angepasst, um mit der Applikation nicht nur infizierte Personen managen zu können, sondern auch Kontaktpersonen zu erfassen.
 Die neu entstandene Applikation bekam den Namen \ac{SORMAS-ÖGD} und wird vom Bund allen deutschen Gesundheitsämtern kostenlos zur Verfügung gestellt. 
 \cite{SORMAS_covid}
 \\
@@ -56,8 +10,7 @@ Diese Zahl nimmt jedoch stetig zu.
 An dieser Stelle kommt Netzlink ins Spiel: 
 Die Firma hat durch eine Ausschreibung einen Vertrag mit dem Bund abgeschlossen, nach dem Netzlink jedem \ac{GA}, das interessiert ist, eine \ac{SORMAS-ÖGD}-Instanz zur Verfügung stellt.
 
-\section{Problemstellung}
-\subsection{IST-Zustand}
+\section{IST-Zustand}
 Aktuell stellt Netzlink die \ac{SORMAS}-Instanzen auf ihrer OpenStack\footnote{https://www.openstack.org/}-Infrastruktur zur Verfügung. 
 \\
 Die Daten, die in der \ac{SORMAS}-Datenbank gespeichert werden sind sogenannte besonders schützenswerte Daten.
@@ -77,10 +30,38 @@ Für jedes \ac{GA} eine eigene VM zu bauen verbraucht unnötig viele Resourcen:
     \item Zeit um die \ac{VM} auszurollen und zu starten 
 \end{itemize}
 
-\subsection{SOLL-Zustand}
-Die resourcenschonendere Lösung wäre, eine Containerplattform wie Kubernetes zu nutzen. 
+\section{SOLL-Zustand}
+Die resourcenschonendere Lösung wäre, eine Containerplattform wie Kubernetes\footnote{https://kubernetes.io/} zu nutzen.
+So kann viel Overhead eingespart werden, die Applikation kann schneller und zuverlässiger bereitgestellt werden. 
+Die Abgrenzung, und damit der Schutz der Daten muss dabei unbedingt bestehen bleiben.
 
+\section{Problemstellung}
+Um den Schutz der besonders schützenswerten Daten zu garantieren muss eine Isolation geschaffen werden, die normalerweise bei einer Containerplattform nicht gegeben ist. 
+Die Datenbank der verschiedenen \ac{GAs} dürfen nicht auf einer Maschine, also auf einem Kernel, laufen.
+Diese Bedingungen können mit der Container Runtime "Kata-Containers"\footnote{https://katacontainers.io/} erfüllt werden. 
+Die Funktionsweise dieser Runtime wird im Verlauf der Arbeit ausführlich erklärt. 
+An dieser Stelle sei nur schon einmal vorweggenommen, dass diese Runtime die Prinzipien von \ac{VM}s und Containern  verbindet. 
+Die "Container" die in dieser Runtime gestartet werden bekommen einen eigenen Kernel und sind daher eigentlich kleine \ac{VM}s, die sich jedoch wie Container anfühlen und bedienen lassen.
+Hierbei wurde darauf geachtet, dass der Overhead der Instanzen so klein wie möglich gehalten wird, um das Container-Verhalten zu ermöglichen.
+Die Aufgabenstellung ist also, eine Containerplattform aufzubauen die kata als Runtime nutzen kann.
+Anschließend soll das bestehende \ac{SORMAS} mit seiner vollen Funktionalität auf Kubernetes migiert werden.
 
+\section{Aufbau der Arbeit}
+In Kapitel 2 werden die technischen Grundlagen auf denen dieses Projekt aufbaut erklärt. 
+Hierbei wird kurz die Funktionsweise von Kubernetes angerissen, um die Integration von Kata-Containers in Kubernetes nachvollziehen zu können,
+die Unterschiede zwischen \ac{VM}s und und Containern werden herausgearbeitet und die Prinzipien der Kata-Runtime erklärt.
+\\
+Im Kapitel 3 wird der Aufbau und die Konfiguration des Clusters behandelt, dieses gliedert sich in:
+\begin{itemize}
+    \item Hardware Konfiguration
+    \item Vorbereitung des Maschinen
+    \item Netzwerk-Konfiguration
+    \item Installation und Konfiguration von Kata
+    \item Installation eines Kubernetes-Clusters
+\end{itemize}
 
-
-
+Kapitel 4 behandelt die Migration der \ac{SORMAS}-Applikation.
+Sormas besteht aus einem Webserver, einer Autoheal-Funktion, einem Backup, einer Java Anwendung auf einem Payara-Server und einer Postgres-Datenbank.
+Jeder dieser Teile muss auf der \ac{COP} abgebildet werden.
+\\
+Nach der Fertigstellung, in Kapitel 5, wird ein Fazit über das Projekts gezogen, und anschließend im letzten Kapitle 6 wird ein Ausblick auf den Verlauf des Projekts sowie zusätzliche Anwendungsmöglichkeiten gegeben.

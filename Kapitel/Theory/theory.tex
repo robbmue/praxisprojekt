@@ -1,6 +1,7 @@
 \chapter{Theoretischer Teil}
 
-\section{Virtuelle Maschinen} \cite{vm}
+\section{Virtuelle Maschinen} 
+Die hier gesammelten Informationen wurden bei IBM\cite{vm} recherchiert. IBM ist mit RedHat ein Vorreiter auf diesem Bereich.\\
 Als virtuelle Maschine bezeichnet man die Emulation einer physischen Maschine.
 Durch Virtualisierung ist es möglich mehrere dieser \ac{VM}s auf einer Hardwaremaschine laufen zu lassen.
 So können Maschinen mit verschiedenen Hardware-Eigenschaften, Betriebssystemen und Applikationen sich die zur Verfügung stehenden Ressourcen teilen, so dass sparsamer gearbeitet werden kann.
@@ -20,7 +21,7 @@ Hypervisor lassen sich in zwei Typen einordnen:
             Durch die zusätzliche \ac{OS} Schicht ist die Latenz höher als beim ersten Typen.
 \end{itemize}
 
-Durch die Unabhängigkeit von der Hardware ist es möglich die \ac{VM}s problemlos zwischen verschiedenen Hosts zu verschieben. 
+Durch die Unabhängigkeit von der Hardware ist es möglich die \ac{VM}s problemlos zwischen verschiedenen Hosts zu verschieben. \\
 
 \subsection{Vorteile von Virtuellen Maschinen}
 Da sich durch diese Technologie mehrere Applikationen und Maschinen dieselben Ressourcen teilen können, ist das Arbeite mit \ac{VM}s deutlich Ressourcenschonender und effizienter als das Arbeiten mit klassischen hardware-Servern.
@@ -29,7 +30,8 @@ Des weiteren können die Server deutlich agiler gemanaged und vor allem auch sch
 Die Agilität führt auch dazu, dass Downtimes bei Umzügen oder Updates der Umgebungen reduziert werden.
 
 
-\section{Container} \cite{containers} \todo{Bild einfügen}
+\section{Container}
+Die Informationen aus diesem Absatz stammen von Google\cite{containers}, einem der größten Innovatoren auf dem Bereich der Containertechnologien.
 \subsection{Was ist ein Container?}
 Unter einem Container verstehen wir ein vollständiges Paket, dass alle Bausteine enthält um eine bestimmt Applikation zu deployen.
 Da alle Bestandteile in Ihm vereint sind ist das Deployment der Anwendung so komplett unabhängig von der zugrundeliegenden Umgebung, was den Prozess vereinfacht und verzulässiger macht.
@@ -60,13 +62,42 @@ Dies wird nicht zuletzt durch das sehr populäre Docker Image Format gewährleis
 Arbeitsspeicher, CPU und Speicher sind auf Betriebssystemebene virtualisiert und somit bis zu einem gewissen Level vom Rest des Systems abgegrenzt. 
 Die Isolation ist jedoch weniger stark als bei \ac{VM}s.
 
-\section{Vergleich von Virtuellen Maschinen mit Containern}
+
+\section{Vergleich von Virtuellen Maschinen und Containern}
+
+Beide Technologien haben ähnliche Ziele: \\
+Höhere Schnelligkeit und Agilität beim Bereitstellen von Software, geringere Downtimes und Einspraung von Ressourcen. \\
+Durch die unterschiedliche Herangehensweise hat jede Technologie andere Anwendungsbereiche als Ziel, sowie andere Stärken.
+Die zusätzliche \ac{OS}-Schicht, in Abbildung \ref{fig:comparison_vm_container} dargestellt, bringt zwar einen deutlich größeren Overhead mit sich, dafür aber auch bessere abgrenzen der einzelnen Applikationen voneinander.
+Die wichtigsten Unterschiede sind in Tabelle \ref{table:comparison_vm_container} noch einmal zusammengefasst. 
+
+\begin{table}
+        \centering
+        \begin{tabular}{ | p{0.25\textwidth} | p{0.25\textwidth} | p{0.25\textwidth} | }
+        Kategorie & Virtuelle Maschine & Container \\
+        \hline \\
+        Startup-Zeit & Im Minuten Bereich & Millisekunden bis Sekunden \\
+        Performance & Großer Overhead, dadurch reltiv langsam & Kleiner Overhead, sehr schnell\\
+        Operating System & Jede \ac{VM} kann auf einem unterschiedlichen \ac{OS} laufen & Alle Container teilen sich das \ac{OS} des Hosts \\
+        Operations & Anpassungen müssen auf den \ac{VM}s vorgenommen werden. Unterschiedliche Maschinen, welche dieselbe Applikation bereitstellen können sich somit trotzdem unterscheiden. & Durch die deklarative Natur der Containertechnologien müssen keine Administratoren den Containern arbeiten. Anpassungen werden ausschließlich in den Images und Dockerfiles vorgenommen. Der Administrative Aufwand ist sehr gering. \\
+        \end{tabular}
+        \caption{Unterschiede von VM's und Containers}
+        \label{table:comparison_vm_container}
+\end{table}
+
+\begin{figure}
+        \caption{Vergleich von \ac{VM}s und Containern\cite{vm_vs_container}}
+        \centering
+        \includegraphics[width=0.8\textwidth]{bilder/comparison_vm_container.png}
+        \label{fig:comparison_vm_container}
+\end{figure}
+
+\section{Kata-Runtime}
+
 
 \section{Kubernets}
 
 \section{Ansible}
-
-\section{Kata-Runtime}
 
 \section{Helm}
 

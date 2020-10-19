@@ -92,7 +92,25 @@ Die wichtigsten Unterschiede sind in Tabelle \ref{table:comparison_vm_container}
         \label{fig:comparison_vm_container}
 \end{figure}
 
+\section{Open Container Initiative}
+Die \ac{OCI} ist eine Organisation, die Standarts für Container Runtimes und Formate erstellt.
+Aktuell werden zwei Spezifikationen von der Organisation bereitgestellt, die \ac{runtime-spec} und die \ac{image-spec}.
+Die Spezifikationen erlauben es verschiedener Software, das bereitgestellt Interface zu implementieren.
+Die \ac{runtime-spec} definiert wie ein Container auf dem Hsot ausgeführt werden muss. 
+Eine \ac{OCI}-Implementation, wie zum Beispiel Docker, lädt zum Ausführen eines Contaienrs ein \ac{OCI}-kompatibles Container-Image herunter und entpackt dieses in ein Runtime Filesystem Bundle.
+Ohne die Definitionen des \ac{OCI} könnte ein Container der im Docker-Format und die Docker-Runtime(runc) geschrieben wurde auch nur von Docker ausgeführt werden.
+Die \ac{OCI}-Spezifikation ermöglicht es, mit jeder Container-Runtime, die \ac{OCI}-kompatibel ist, ein Docker-Image auszuführen. \cite{oci}
+
+
+
 \section{Kata-Runtime}
+Das Kata Containers Projekt ist ein Open Sorce Projekt, das probiert die Vorteile beider zuvor erläuterten Technologien zu kombinieren.
+Die Isolation von \ac{VM}s mit der Geschwindigkeit, dem geringen Management Aufwandt und dem Self-Healing von Contaienern.
+\\
+Wenn ein Contaienr-Image in der Kata-Runtime gestartet wird, wird tatsächlich kein Container gestartet, sondern eine lightweight \ac{VM} erstellt.
+Diese hat ihren eigenen Kernel, der eine Isolation des Netzwerks, des Speichers und von \ac{I/O} garantiert, jedoch mit einem deutlich kleineren Overhead als konventionelle \ac{VM}s.
+Um einen möglichst großen Anwenderbereich abzudecken arbeitet Kata nach den Industrienne Standarts \ac{OCI} und implementiert Kubernetes \ac{CRI}, das im Verlauf der Arbeit noch genauer gerklärt wird. 
+Durch die standatisierten Interfaces ist der Umstieg und das Arbeiten mit Kata in der Theorie sehr unkompliziert. \cite{kata}
 
 
 \section{Kubernets}

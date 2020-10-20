@@ -107,6 +107,102 @@ Die \ac{OCI}-Spezifikation ermöglicht es, mit jeder Container-Runtime, die \ac{
 
 
 
+\section{Kubernets}
+Kubernetes ist eine \ac{FOSS}-Lösung zum managen von containerisierten Anwendungen.
+Das System ermöglicht automatisches Skalieren und Deploymen der Anwendungen, sowie integriertes Self-Healing, einfaches Management und Updaten.
+Außerdem ist es vergleichsweise unproblematisch ein Kubernetes-Cluster selbst zu skalieren. 
+Nodes lassen sich im Live-Betrieb nicht nur hinzufügen, sondern können genauso auch ausfallen. 
+Die auf ihnen laufenden Container werden dann, wenn möglich ohne Downtimes, auf die verbliebenen zur Verfügung stehenden Nodes verteilt. 
+Gehostet werden kann Kubernetes sowohl on-premise als auch in der public- oder hybrid-cloud.
+\\
+Entwickelt wurde die Technologie ursprünglich von Google, die schon seit 15 Jahren Produktions-Arbeitslast in Containern laufen lassen.
+\cite{kubernetes}
+
+\subsection{Cluster Komponenten}
+\subsubsection{Proxy}
+Der Proxy ist dafür verantwortlich, den Netzwerk-Verkehr zu Services in dem Kubernetes-Cluster zu routen. 
+Dafür muss auf jeder Maschine des Clustern der entsprechende Proxy vorhanden sein, was mit der Kubernetes-Ressourcde \textit{DaemonSet} realisiert werden kann.
+Diese sorgt dafür, dass auf jedem Node des Clusters der entsprechende Container läuft.\cite[S.34]{Kubernetes_up_and_running}
+\subsubsection{DNS}
+Der \ac{DNS}-Server ist für die Namensaulösung und die Entdeckung von Services innerhalb des Clusters verantwortlich. 
+Der \ac{DNS}-Server selbst läuft als ein eigener Service in dem Cluster.
+Damit er funktionieren kann, muss da Cluster mit einem funktionieren Container-Network ausgestattet sein. 
+\cite[S.34 f]{Kubernetes_up_and_running}
+
+\subsection{Pods}
+Ein Pod ist der kleinste Workload in einem Kubernetes Cluster, in ihm können ein oder mehrere Container laufen.
+Wenn ein Pod-Manifest an die Kubernetes-\ac{API} geschickt wird, entscheidet der \textit{sheduler} auf welchem der Nodes der Pod gestartet werden soll.
+Gestartet und am Leben erhalten wird der Pod dann vom \textit{kubelet daemon}.
+\cite[S.63]{Kubernetes_up_and_running}
+
+\subsection{Service}
+Das Service Objekt in Kubernetes wird benötigt um einen Service inner- oder außerhalb des Clusters zu exposen.
+Services werden genötigt um verlässlich auf einen Pod zugreifen zu können.
+Da sich in Kubernetes die Namen der einzelnen Pods bei jedem Neustart ändern können, wird ein gleichbleibendes Objekt benötigt, über das immer dieselbe dahinterliegende Applikation erreicht werden kann.
+Diese Rolle übernimmt der Service.
+Über Labels werden sie mit einzelnen Pods verknüpft und macht ihn so, über den Service, erreichbar.
+\cite[S.86]{Kubernetes_up_and_running}
+
+\subsection{Ingress}
+Der Ingress leitet von \ac{HTTP} und \ac{HTTPS} Routes auf Services innerhalb des Clusters weiter.
+Mithilfe dieser Ressource können Services mit \ac{URL}'s verknüpft werden, Load kann verteilt werden und \ac{SSL} / \ac{TLS} terminiert.
+Beispielsweise können so \ac{URL}'s wie \textit{service1.host.com} und \textit{service2.host.com} zu den entsprechenden Services und Ports auf dem gleichen Host gemappt werden, wie in Abbildung \ref{fig:ingress} dargestellt.
+\cite{kubernetes_ingress}
+\begin{figure}[h]
+        \caption{Kubernetes Ingress\cite{kubernetes_ingress}}
+        \centering
+        \includegraphics[width=\textwidth]{bilder/kubernetes_ingress.png}
+        \label{fig:ingress}
+\end{figure}
+
+\subsection{Repica Set}
+Ein Replica Set lässt sich als Pod-Manager beschreiben. 
+In dieser Ressource kann definiert werden, wie viele Kopien von welchem speziellen Pod vorhanden sein sollen.
+Das Replica Set wird dann immer dafür sorgen, dass genau so viele Kopien des Pods auf dem Cluster laufen wie deklariert. 
+Wenn ein oder mehrere Pods stirben, die von einem Replica Set gemanaged werden, werden dieser automatisch erneut gestartet. 
+So lange bis wieder die gewünschte Anzahl an Pods erreicht ist.
+Selbst wenn ein kompletter Node ausfällt, kümmert das Replica Set sich darum, dass der Pod auf einem anderen Node gestartet wird.
+\cite[S.103 ff.]{Kubernetes_up_and_running}
+
+\subsection{Deployment}
+Das Deployment ist vor allem zum managen von neuen Software Releases gedacht. 
+Durch den "Rollout"-Prozess wird es vereinfacht von einer Version der Software zur nächsten zu wechseln, zum Beispiel durch eingebaute Health-Checks die das Update anhalten wenn zu viele Instanzen der neuen Software-Version in einem Failed-State landen.
+Durch Deploymnets können Downtimes komplett vermieden werden, indem von einer zu updatenden Software nach und nach die einzelnen Container durch Container mit der neuen Software Version ersetzt werden.
+Wenn der letzte Container mit der alten Software-Version ersetzt wurde, ist das Update der Anwendungen ohne eine einzige Sekunde Downtime durchgeführt wurden.
+Ein Deloyment managet dazu Replica Sets, so wie diese die einzelnen Pods managen.
+\cite[S.113 ff.]{Kubernetes_up_and_running}
+
+\subsection{Stateful Set}
+Stateful Sets sind ähnlich zu Replica Sets, haben aber einzigartige und eindeutige Eigenschaften.
+Jede Kopie bekommt dazu einen persistenten Hostname, bei dem von 0 aufwärst hochgezählt wird. 
+Wird das Stateful Set gelöscht, werden die Pods vom höchsten zum niedrigsten hin wieder gelöscht.
+Durch den persistenten Namen ist es für andere Applikationen innerhalb des Clusters möglich immer genau die gleiche Instanz anzusprechen.
+\cite[S.186 f.]{Kubernetes_up_and_running}
+
+\subsection{Config Maps}
+Eine ConfigMap wird genutzt um Konfigurations-Werte für eine Anwendungen zu setzen. 
+Die gesetzen Variablen können das Enviroment das Containers definieren, mit dem sie verknüpft werden.
+\cite[S.153]{Kubernetes_up_and_running}
+
+\subsection{Secret}
+Secrets sind sehr ähnlich zu Config Maps, mit dem einzigen Unterschied, dass die in ihnen gespeicherten Daten sensibel und deswegen verschlüsselt sind.
+Das bedeutet, dass Sie sich für Passwörter, Securety Token und secret Keys besser eigenen als Config Maps.
+\cite[S.157 f.]{Kubernetes_up_and_running}
+
+\subsection{persistenter Storage}
+Persistenter Storage in Kubernetes ist standartmäßig nicht gegeben. 
+Die Plattform rechnet damit, dass die einzelnen auf ihr gehosteten Pods regelmäßig ausgetauscht zerstört werden. 
+Um in so einem Umfeld persistenten Storage garantieren zu können gibt es in Kubernetes \ac{PV}s und \ac{PVC}s.
+
+\subsubsection{Persistent Volume}
+Ein \ac{PV} ist ein definierter Storage-Teil das mit einer Storage Class provisioniert wurde.
+Ihr Lifecycle ist unabhängig von dem individuellen Pod der das \ac{PV} benutzt.
+
+\subsubsection{Persistent Volume Claim}
+Ein \ac{PVC} ist eine Anfrage des Users nach Storage.
+In Ihnen werden Größe und Zugriffsart des benötigten Speicherplatzes definiert. 
+
+
 \section{Kata-Runtime}
 Das Kata Containers Projekt ist ein Open Sorce Projekt, das probiert die Vorteile beider zuvor erläuterten Technologien zu kombinieren.
 Die Isolation von \ac{VM}s mit der Geschwindigkeit, dem geringen Management Aufwandt und dem Self-Healing von Contaienern.
@@ -147,24 +243,22 @@ Bei den Kata-Containern hingegegen werden die Container in \ac{VM}s verpackt, vo
 Durch die Hardware-Virtualisierung kann jeder container nur auf die Ressourcen zugreifen, welche für ihn erstellt wurden. 
 In seinem Kernel laufen keine Prozesse, außer diejenigen der Applikation selbst.  
 
+\subsection{Kata Container in Kubernetes}
 
+\begin{figure}[h]
+        \caption{Kata Architektur\cite{kata_learn}}
+        \centering
+        \includegraphics[width=\textwidth]{bilder/katacontainers_architecture_diagram.jpg}
+        \label{fig:kata_architecture}
+\end{figure}
 
-\todo{Weiter ausführen mit Grafiken}
-
-
-
-\section{Kubernets}
-Kubernetes ist eine \ac{FOSS}-Lösung zum managen von containerisierten Anwendungen.
-Das System ermöglicht automatisches Skalieren und Deploymen der Anwendungen, sowie integriertes Self-Healing, einfaches Management und Updaten.
-Außerdem ist es vergleichsweise unproblematisch ein Kubernetes-Cluster selbst zu skalieren. 
-Nodes lassen sich im Live-Betrieb nicht nur hinzufügen, sondern können genauso auch ausfallen. 
-Die auf ihnen laufenden Container werden dann, wenn möglich ohne Downtimes, auf die verbliebenen zur Verfügung stehenden Nodes verteilt. 
-Gehostet werden kann Kubernetes sowohl on-premise als auch in der public- oder hybrid-cloud.
-\\
-Entwickelt wurde die Technologie ursprünglich von Google, die schon seit 15 Jahren Produktions-Arbeitslast in Containern laufen lassen.
-\cite{kubernetes}
-\todo{Mit Buch als Quelle vervollständigen}
-
+In Abbildung \ref{fig:kata_architecture} lässt sich erkennen, dass eine Komponente namens "Kata Shim V2" eine große Rollen in der Kubernetes Integration spielt.
+Kubernetes kann Pods und \ac{OCI}-kompatible Container mit dem \textit{kata-shim} starten. 
+In der \ac{VM}, die von dem \textit{kata-shimv2} gestartet wurde, läuft unter anderem der \textit{kata-agent}, der für das Starten von Container-Prozessen eingesetzt wird.
+Außerdem hostet er einen \ac{gRPC}-Server, über den der \textit{kata-shimv2} mit dem Agent in der \ac{VM} kommunizieren kann.
+So können von dem Shimv2 Befehle zum managen von Containern in die Maschine gesendet werden, sowie \ac{I/O}-Streams transportiert werden, um so beispielsweise Commands in den Container auf dem Gast zu senden.
+Auf diesem Weg werden aber genauso auch der \textit{stdout}- und \textit{stderr}-Stream an den \ac{CRI} Shim transportiert.
+\cite{kata_architecture}
 
 
 

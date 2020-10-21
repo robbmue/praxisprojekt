@@ -73,7 +73,7 @@ Durch die unterschiedliche Herangehensweise hat jede Technologie andere Anwendun
 Die zusätzliche \ac{OS}-Schicht, in Abbildung \ref{fig:comparison_vm_container} dargestellt, bringt zwar einen deutlich größeren Overhead mit sich, dafür aber auch bessere abgrenzen der einzelnen Applikationen voneinander.
 Die wichtigsten Unterschiede sind in Tabelle \ref{table:comparison_vm_container} noch einmal zusammengefasst. 
 
-\begin{table}[h]
+\begin{table}[ht]
         \centering
         \begin{tabular}{ | p{0.25\textwidth} | p{0.25\textwidth} | p{0.25\textwidth} | }
         Kategorie & Virtuelle Maschine & Container \\
@@ -87,7 +87,7 @@ Die wichtigsten Unterschiede sind in Tabelle \ref{table:comparison_vm_container}
         \label{table:comparison_vm_container}
 \end{table}
 
-\begin{figure}[h]
+\begin{figure}[ht]
         \caption{Vergleich von Virtuellen Maschinen und Containern\cite{vm_vs_container}}
         \centering
         \includegraphics[width=0.8\textwidth]{bilder/comparison_vm_container.png}
@@ -134,7 +134,7 @@ In Kubernetes 1.5 wurde in Kubernetes das \ac{CRI} eingeführt.
 Dieses Interface erlaubt es dem \textit{kubelet} mit jedet Container Runtime zu arbeiten, die selbst dieses Interface implementiert. 
 \textit{Kubelet} kommuniziert über einen \textit{shim} mit der Runtime, wobei der \textit{shim} als Server funktioniert und \textit{kubelet} als Client.
 Der \textit{\ac{CRI} shim} gibt dann die Befehle an die Runtime weiter, wie in Abbildung \ref{fig:cri} dargestellt.
-\begin{figure}[h]
+\begin{figure}[ht]
         \caption{Kubernetes \ac{CRI}\cite{kubernetes_cri}}
         \centering
         \includegraphics[width=\textwidth]{bilder/kubernetes_cri.png}
@@ -161,7 +161,7 @@ Der Ingress leitet von \ac{HTTP} und \ac{HTTPS} Routes auf Services innerhalb de
 Mithilfe dieser Ressource können Services mit \ac{URL}'s verknüpft werden, Load kann verteilt werden und \ac{SSL} / \ac{TLS} terminiert.
 Beispielsweise können so \ac{URL}'s wie \textit{service1.host.com} und \textit{service2.host.com} zu den entsprechenden Services und Ports auf dem gleichen Host gemappt werden, wie in Abbildung \ref{fig:ingress} dargestellt.
 \cite{kubernetes_ingress}
-\begin{figure}[h]
+\begin{figure}[ht]
         \caption{Kubernetes Ingress\cite{kubernetes_ingress}}
         \centering
         \includegraphics[width=\textwidth]{bilder/kubernetes_ingress.png}
@@ -240,7 +240,7 @@ Ein Jahr später, in 2017, wurde beide Produkte unter der \ac{OSF} zu Kata-Conta
 
 \subsection{Vergleich mit traditionellen Containern}
 
-\begin{figure}[h]
+\begin{figure}[ht]
         \caption{Vergleich von Kata-Containern und traditionellen Containern\cite{kata_learn}}
         \centering
         \includegraphics[width=\textwidth]{bilder/katacontainers_traditionalvskata_diagram.jpg}
@@ -258,7 +258,7 @@ In seinem Kernel laufen keine Prozesse, außer diejenigen der Applikation selbst
 
 \subsection{Kata Container in Kubernetes}
 
-\begin{figure}[h]
+\begin{figure}[ht]
         \caption{Kata Architektur\cite{kata_learn}}
         \centering
         \includegraphics[width=\textwidth]{bilder/katacontainers_architecture_diagram.jpg}

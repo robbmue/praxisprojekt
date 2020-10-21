@@ -1,10 +1,46 @@
 \chapter{Aufbau und Konfiguration des Clusters}
 
+Dieses Kapitel bildet die erste Hälfte des praktischen Teils der Projektarbeit.
+Dieser behandelt den Aufbau der Hardware, die Netzwerk Konfiguration, sowie die Installation der Kata-Runtime und letztendlich den Aufbau eines Kubernetes Clusters.
+Am Ende diese Kapitels soll alles für das sichere Deployment von Sormas auf Kata Vorbereitet sein.  
+
 \section{Hardware}
+Für das Projekt wurde folgende Hardware verwendet:
+\begin{itemize}
+    \item 1 Intel Atom \ac{NUC}
+    \item 3 Lenovo Workstations 
+    \item 1 Linksys Netzwerk-Switch
+    \item 5 Ethernet Kabel
+    \item 1 \ac{PDU}
+    \item entsprechende \ac{PSU}s
+\end{itemize}
+
+Der einzelne Intel \ac{NUC} soll in dem Cluster die Rolle des Masters einnehmen.
+Die Workstations werden als Worker eingesetzt.
+Der Switch und die Ethernet Kabel werden genutzt um ein isoliertes Netzwerk aufzubauen, davon wird sich eine geringere Latenz und bessere Labor Bedingungen versprochen.
+Mithilfe der \ac{PDU} und \ac{PSU}s wird das Cluster mit Strom versorgt. 
+Eine genauere Bestimmung der Hardware lässt sich Tabelle \ref{table:hardware} entnehmen.
+
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{ p{ 0.3\textwidth } | p{ 0.3\textwidth } p{ 0.3\textwidth } }
+        x & \ac{NUC} & Workstations \\
+        \hline \\
+        CPU & Intel\textregistered Celeron\textregistered N2930 CPU@1.83GHz &  Intel\textregistered Core\texttrademark i3-7100 CPU@3.90GHz \\
+        Cores & 4 & 4 \\
+        Arbeitsspeicher & 8GiB & 8GiB \\
+        Speicherplatz & 480GiB & 240 GiB \\
+    \end{tabular}
+    \caption{Hardware}
+    \label{table:hardware}
+\end{table}
+
 
 \section{Vorbereitung der Maschinen}
 
-\section{Netzwek Konfiguration}
+
+\section{Netzwerk Konfiguration}
 
 \section{Installation und Konfiguration von Kata}
 

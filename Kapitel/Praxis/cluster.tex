@@ -20,7 +20,7 @@ Die Workstations werden als Worker eingesetzt.
 Der Switch und die Ethernet Kabel werden genutzt um ein isoliertes Netzwerk aufzubauen, davon wird sich eine geringere Latenz und bessere Labor Bedingungen versprochen.
 Mithilfe der \ac{PDU} und \ac{PSU}s wird das Cluster mit Strom versorgt. 
 Eine genauere Bestimmung der Hardware lässt sich Tabelle \ref{table:hardware} entnehmen.
-\todo{Verweis auf Anhang, wenn dieser fertig ist}
+\todo{Verweis auf Anhang, wenn dieser fertig ist, Bedingungen zum Nachbau müssen gegeben sein}
 
 
 \begin{table}[h]
@@ -41,11 +41,43 @@ Eine genauere Bestimmung der Hardware lässt sich Tabelle \ref{table:hardware} e
 \section{Vorbereitung der Maschinen}
 Um die Maschinen vorzubereiten wurden bei jeder einzelnen der Storage komplett formatiert.
 Anschließend wurde auf allen Maschinen Ubuntu 20.04 als \ac{OS} installiert.
+Ubuntu wurde auf Empfehlungen aus dem Unternehmen gewählt, da einige schon gute Erfahrungen mit Kubernetes auf Ubuntu gesammelt haben und ein gutes Tiefewissen vorhaben ist.
+\\
 Für jede Maschine wurde dabei ein User und ein Passwort eingerichtet, sowie der \ac{SSH} Zugriff von Außerhalb freigeschaltet.
-
+Der SSH-Zugriff wird benötigt um die Maschinen leichter zugänglich zu machen, aber vor allem, um Sie mit Ansibel managen zu können.
 
 
 \section{Netzwerk Konfiguration}
+Als nächstes muss ein Netzwerk-Zugang für die Maschinen eingerichtet werden.
+Das Netzwerk soll so gut wie möglich von den Produktiv-Netzwerken bei Netzlink abgegrenzt sein.
+Durch ein Subnet kann erreicht werden, dass die Netzwerk Performance erhöht wird und die Maschinen nicht von anderem Traffic beeinflusst werden können.
+Dadurch können insgesamt reproduzierbarere Ergebnisse erzielt werden. 
+\\
+Für diese Projekt soll des Subnetz von dem Master-Node aufgespannt werden. 
+Dadurch kann der Master auch an anderer Stelle einfach mit dem Netzwerk verbunden werden und das interne Netz bleibt unverändert.
+Für den Master wurde also eine statische Netzlink-Interne \ac{IP}-Adresse angefragt um über diese Adresse auch die restlichen Nodes an das Netzwerk anzuschließen.
+Zusätzlich erhält der Master eine interne \ac{IP}-Adresse über die er mit den Nodes kommunizieren kann.
+Die gewählten Adressen lassen sich Tabelle \ref{table:katanetes_ips} entnehmmen.
+
+\begin{table}
+    \centering
+    \begin{tabular}[h!]{ c | c c }
+        x & Externe \ac{IP} & Interne \ac{IP} \\
+        \hline
+        k8smaster & 10.10.6.60 & 192.168.0.1 \\
+        k8sworker1 & - & 192.168.0.11 \\
+        k8sworker2 & - & 192.168.0.12 \\
+        k8sworker3 & - & 192.168.0.13 \\
+    \end{tabular}
+    \caption{Cluster IPs}
+    \label{table:katanetes_ips}
+\end{table}
+
+Das Netzwerk wurde so geplant, dass nur der Master-Node einen Internet-Zugriff beötigt.
+Auf Ihm wurde ein \ac{DHCP}-Daemon so eingerichtet, dass dieser jedem der Worker basierend auf deren \ac{MAC}-Addressen die richtige IP zugeordnet wird. 
+Die Configuration für den \ac{DHCP}-Server findet sich im Anhang unter 
+
+
 
 \section{Installation und Konfiguration von Kata}
 

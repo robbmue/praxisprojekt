@@ -86,6 +86,8 @@ Die wichtigsten Unterschiede sind in Tabelle \ref{table:comparison_vm_container}
         \caption{Unterschiede von VM's und Containers}
         \label{table:comparison_vm_container}
 \end{table}
+\todo{Isolation hinzufügen}
+
 
 \begin{figure}[ht]
         \caption{Vergleich von Virtuellen Maschinen und Containern\cite{vm_vs_container}}
@@ -259,9 +261,9 @@ In seinem Kernel laufen keine Prozesse, außer diejenigen der Applikation selbst
 \subsection{Kata Container in Kubernetes}
 
 \begin{figure}[ht]
-        \caption{Kata Architektur\cite{kata_learn}}
         \centering
         \includegraphics[width=\textwidth]{bilder/katacontainers_architecture_diagram.jpg}
+        \caption{Kata Architektur\cite{kata_learn}}
         \label{fig:kata_architecture}
 \end{figure}
 
@@ -308,4 +310,3 @@ Charts beschreiben komplexe Applikationen und ermöglichen somit eine vereinfach
 Für das \ac{SORMAS}-Projekt wird Helm jedoch auch vor allem wegen der guten Templating Möglichekeiten eingesetzt.
 Verchiedene \ac{GAs} benötigen unterschiedliche Attribute, die alle über das Helm-Templating gesetzt werden könne.
 So kann garantiert werden, dass nur an einer einzigen Stelle im Code jemals Anpassungen gemacht werden müssen, wenn eine neue \ac{SORMAS-ÖGD}-Instanz ausgerollt werden soll.
-

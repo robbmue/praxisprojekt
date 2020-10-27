@@ -19,9 +19,7 @@ Der einzelne Intel \ac{NUC} soll in dem Cluster die Rolle des Masters einnehmen.
 Die Workstations werden als Worker eingesetzt.
 Der Switch und die Ethernet Kabel werden genutzt um ein isoliertes Netzwerk aufzubauen, davon wird sich eine geringere Latenz und bessere Labor Bedingungen versprochen.
 Mithilfe der \ac{PDU} und \ac{PSU}s wird das Cluster mit Strom versorgt. 
-Eine genauere Bestimmung der Hardware lässt sich Tabelle \ref{table:hardware} entnehmen.
-\todo{Verweis auf Anhang, wenn dieser fertig ist, Bedingungen zum Nachbau müssen gegeben sein}
-
+Eine Bestimmung der Hardware lässt sich Tabelle \ref{table:hardware} entnehmen, für eine detallierte Version siehe Anhang \ref{table:hw_detail}.
 
 \begin{table}[h]
     \centering
@@ -30,8 +28,8 @@ Eine genauere Bestimmung der Hardware lässt sich Tabelle \ref{table:hardware} e
         \hline \\
         CPU & Intel\textregistered Celeron\textregistered N2930 CPU@1.83GHz &  Intel\textregistered Core\texttrademark i3-7100 CPU@3.90GHz \\
         Cores & 4 & 4 \\
-        Arbeitsspeicher & 8GiB & 8GiB \\
-        Speicherplatz & 480GiB & 240 GiB \\
+        Arbeitsspeicher & 8GB & 8GB \\
+        Speicherplatz & 196GB & 240 GB \\
     \end{tabular}
     \caption{Hardware}
     \label{table:hardware}
@@ -74,12 +72,66 @@ Die gewählten Adressen lassen sich Tabelle \ref{table:katanetes_ips} entnehmmen
 \end{table}
 
 Das Netzwerk wurde so geplant, dass nur der Master-Node einen Internet-Zugriff beötigt.
-Auf Ihm wurde ein \ac{DHCP}-Daemon so eingerichtet, dass dieser jedem der Worker basierend auf deren \ac{MAC}-Addressen die richtige IP zugeordnet wird. 
-Die Configuration für den \ac{DHCP}-Server findet sich im Anhang unter 
+Auf Ihm wurde ein \ac{DHCP}-Daemon so eingerichtet, dass dieser jedem der Worker basierend auf deren \ac{MAC}-Addressen die richtige IP zuordnet. 
+Die Configuration für den \ac{DHCP}-Server findet sich im Anhang unter \ref{app:dhcp}. 
 
+Um den Maschinen den Internet-Zugang zu ermöglichen muss als letztes \ac{NAT} auf dem Master Node konfiguriert werden.
+Dafür muss \textbf{net.ipv4.ip\_forward=1} in die \textit{/etc/sysctl.conf} eingetragen werden und anschließend der Server rebootet.
+Außerdem müssen die \textbf{iptables} Regeln angepasst werden, damit der Traffic auf dem internen Interface auf das externe Interface weitergeleitet wird. 
+Das externe Interface ist das \textbf{enp4s0} und das Interne ist \textbf{enp3s0}.
+Für das externe Interface, also \textbf{enp4s0} muss zunächst \textbf{POSTROUTING} und \textbf{MASQUERADE} eingerichtet werden. 
+Dadurch werden die Pakete, die an diesem Interface ankommen, mit der IP des Masters maskiert und dann surch das public Interface gesendet. 
 
+Anschließend müssen alle Pakete die an \textbf{enp3s0} geschickt werden auf \textbf{enp4s0} geforwarded werden, sowie die ankommenden Pakete auf \textbf{enp4s0} wieder über \textbf{enp3s0} zu den entsprechenden Maschienen.
+
+Die genau Konfiguration ist im Anhang unter \ref{app:iptables} zu finden. 
+
+In Ubuntu 20.04 wird nicht wie vielleicht bekannt mit der rc.local gearbietet, sondern mit den Tools \textbf{iptables-persistent} und \textbf{iptables-save}.
+
+Das entstandene Netzwerk wird in Abbildung \ref{fig:network_diagramm} dargestellt.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{bilder/Katanetes Network.png}
+    \caption{Netzwerkdiagramm}
+    \label{fig:network_diagramm}
+\end{figure}
+
+\newpage
+
+\section{Ansible Setup}
+Von diesem Punkt an können nun alle Konfigurationen mit Ansible gemacht werden, da auf jeder der Maschinen \ac{SSH} konfiguriert ist und sie alle über eine Netzwerkverbindung verfügen.
+Dazu muss nur auf dem Master Ansible installiert werden und der \ac{SSH} Zugang zu allen Zielsystemen konfiguriert sein. 
+Für die Installation von Ansibel muss zunächst das Repository \textbf{ppa:ansible/ansible} zum Paketmanager hinzugefügt werden, dann können über \textbf{apt} die entsprechenden Pakete installiert werden.
+Wie zuvor erwähnt muss die Ansibel Installation nur auf einer Maschine erfolgen.
+
+Anschließend müssen für Ansible nur die Hosts, welche gemanaged werden sollem, in die \textit{hosts}-file eingetragen werden.
+Dabei bietet Ansible die Möglichkeit Hostgruppen zu bilden. 
+Wenn ein Playbok ausgeführt wird, kann die Hostgruppe angegeben werden, und alle Operationen werden dementsprechend auf alle Hosts in dieser Gruppe angewendet. 
+Für dieses Projekt wurden die Gruppen \textbf{master} und \textbf{woker} gebildet.
+Das Inventory kann im Anhang unter \ref{app:hosts_file} gefunden werden.
 
 \section{Installation und Konfiguration von Kata}
+
+Damit Kubernetes mit Kata-Containern als Runtime aufgebaut werden kann, muss die Runtime als erstes installiert werden.
+Kata benötigt eine \ac{KVM}-Software um zu funktionieren, hier wurde qemu-kvm gewählt.
+Pakete die im Paket-Manger des \ac{OS} enthalten sind, können mittels des entsprechenden Ansible-Moduls installiert werden.
+Für Ubuntu ist dies das \textbf{apt} Modul. 
+
+Zur Installation von Kata wird das Tool \textbf{kata-manager}\footnote{https://github.com/kata-containers/documentation/blob/master/install/installing-with-kata-manager.md} angeboten. 
+Dieses hat zwei verschiedene Installations Modi:
+\begin{itemize}
+    \item Full Installation \\ Hier werden die Kata-Pakete installiert, dann Docker und zuletzt wird Docker konfiguriert um standartmäßig die Kata-Runtime zu nutzen
+    \item Kata packages \\ Hier werden ausschließlich die Kata-Pakete installiert
+\end{itemize}
+Da Kuberntes mit Containerd Installiert werden soll, wird hier auf eine zusätzliche Docker Installation verzichtet.
+Um den Kata-Manager auszuführen kann einfach das Skript mit \textbf{curl} heruntergeladen werden und dann in einer Shell ausgeführt:
+\begin{lstlisting}[language=bash]
+    $ bash -c "$(curl -fsSL https://raw.githubusercontent.com/kata-containers/tests/master/cmd/kata-manager/kata-manager.sh) install-packages"
+\end{lstlisting}
+
+
+
 
 \section{Installation des Kubernetes-Clusters}
 

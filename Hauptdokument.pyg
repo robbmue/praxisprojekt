@@ -1,0 +1,5 @@
+
+    [worker]
+    k8sworker1
+    k8sworker2
+    k8sworker3

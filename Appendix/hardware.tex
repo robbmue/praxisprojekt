@@ -1,12 +1,20 @@
 \chapter{Hardware}
 
-\todo{Hardware Facts zusammentragen und darstellen}
-
 \begin{table}[h]
-\centering
-
-\begin{tabular}{ | c | c | c |}
-    
-\end{tabular}
-
+    \centering
+    \begin{tabular}{ | p{0.2\textwidth} | p{0.2\textwidth} | p{0.2\textwidth} | p{0.2\textwidth} | p{0.2\textwidth} | }
+        x & k8smaster & worker1 & worker2 & worker3 \\
+        \hline \\
+        CPU & Intel\textregistered Celeron\textregistered N2930 CPU@1.83GHz &  Intel\textregistered Core\texttrademark i3-7100 CPU@3.90GHz & Intel\textregistered Core\texttrademark i3-7100 CPU@3.90GHz & Intel\textregistered Core\texttrademark i3-7100 CPU@3.90GHz \\
+        Cores & 4 & 2 & 2 & 2 \\
+        Threads per Core & 1 & 2 & 2 & 2 \\
+        vCPUs & 4 & 4 & 4 & 4 \\
+        Arbeitsspeicher & 8GB & 8GiB & 8GiB & 8GiB \\
+        Storage & 16GB/500GB & 125GB & 103GB & 117GB \\
+        Storage Art & ATA & NVME & NVME & NVME \\
+        SWAP & 0MB & 0MB & 0MB & 0MB \\
+        Architektur & x86\_64 & x86\_64 & x86\_64 & x86\_64 \\
+    \end{tabular}
+    \caption{Hardware detalliert}
+    \label{table:hw_detail}
 \end{table}

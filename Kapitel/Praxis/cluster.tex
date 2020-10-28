@@ -126,9 +126,9 @@ Dieses hat zwei verschiedene Installations Modi:
     \item Kata packages \\ Hier werden ausschließlich die Kata-Pakete installiert
 \end{itemize}
 Da Kuberntes mit Containerd Installiert werden soll, wird hier auf eine zusätzliche Docker Installation verzichtet.
-Um den Kata-Manager auszuführen kann einfach das Skript mit \textbf{curl} heruntergeladen werden und dann in einer Shell ausgeführt:
-\begin{lstlisting}[language=bash]
-    $ bash -c "$(curl -fsSL https://raw.githubusercontent.com/kata-containers/tests/master/cmd/kata-manager/kata-manager.sh) install-packages"
+Um den Kata-Manager auszuführen kann einfach das Skript mit \textbf{curl} heruntergeladen werden und dann in einer Shell ausgeführt wie in \ref{lst:kata_isntall} gezeigt.
+\begin{lstlisting}[language=bash, caption={Kata Installation}, label={lst:kata_isntall}]
+$ bash -c "$(curl -fsSL https://raw.githubusercontent.com/kata-containers/tests/master/cmd/kata-manager/kata-manager.sh) install-packages"
 \end{lstlisting}
 Ansible bietet für diese Anwendungsfälle das \textbf{shell}-Modul, das auf den Zielsystemen ein Command in der Shell ausführen kann. 
 
@@ -190,5 +190,81 @@ Auch hier wird, um unnötige Operationen zu vermeiden, zunächst einmal überpr�
 Wenn Swap noch nicht deaktiviert wurde wird zunächst einmal mittels des Kommandos \textbf{swapoff -a} jeder Swap ausgeschaltet.
 Um diese Einstellung nach nach einem Reboot noch persistent zu haben, muss die \textit{/etc/fstab} bearbeitet werden.
 Zum einheitlichen Bearbeiten von Dateien bietet Ansible das \textbf{replace}-Modul an.
-Damit kann mithilfe von \ac{regex} nach bestimmen Strings gesucht werden, hier nach allen Strings die "swap" enthalten.
+Damit kann mithilfe von \ac{regex} nach bestimmen Strings gesucht werden.
+Die \ac{regex} \ref{lst:regex} sucht nach allen Zeilen die "swap sw" enthalten. 
+Dabei werden Leerzeichen ignoriert und nur Zeilen ausgewählt die nicht auskommentiert sind. \cite{regex}
+Alle Zeilen in denen dieser Ausdruck gefunden wird, werden anschließend auskommentiert.
+\begin{lstlisting}[language=bash, caption=regex, label=lst:regex]
+'^([^#].*?\sswap\s+sw\s+.*)$'
+\end{lstlisting}
+Die Ansible-Rolle ist im Anhang unter \ref{app:base_role} zu finden.
 
+
+\subsection{Installation der Kubernetes Tools}
+Um die für Kubernetes benötigten Tools zu installieren wird als erstes der Verschlüsselungs-Schlüssel zum Paketmanager \textbf{apt} hinzugefügt.
+Anschließend wird das Kuberntes Repository zu den \textbf{apt}-Repositorys hinzugefügt. 
+Mit den Ansible Modulen \textbf{apt\_key} und \textbf{apt\_repository} lassen sich die Bedingungen leicht erfüllen.
+Danach werden die benötigten Pakete installiert. 
+Diese sind:
+\begin{itemize}
+    \item kubeadm
+    \item kubectl
+    \item kubelet
+    \item kubernetes-cni
+\end{itemize}
+Die Rolle ist dem Anhang \ref{app:kube_tools} beigefügt.
+
+
+\subsection{Setup des Master-Nodes}
+Die folgenden Schritte werden nur auf dem Master-Node ausgeführt. 
+In der Rolle wird mit dem \textbf{kubeadm} Kommando das Cluster Initialisiert.
+Dabei werden folgende Argumente mitgegeben:
+\begin{itemize}
+    \item pod-network-cidr \\ Über dieses Argument wird das Subnetz für definiert, in welchem die Pods deployed werden können
+    \item apiserver-advertise-address \\ Die \ac{IP} Adresse auf welcher der \ac{API}-Server aufgesetzt werden soll
+    \item apiserver-cert-extra-sans \\ Zusätzliche Domain Names und \ac{IP} Addressen, die in das Zertifikat für den \ac{API}-Server eingebunden werden sollen
+    \item token-ttl \\ Die \ac{TTL} die ein Token hat, bevor er abläuft
+    \item token \\ Der Token mit dem sich die Worker an dem Kubernetes Cluster anmelden können. Eigentlich würde Kubernetes einen eigenen Token generieren, hier muss jedoch ein statischer gesetzt werden, damit er im nächsten Schritt, dem Join der Worker, verwendet werden kann
+\end{itemize}
+Das vollständige Kommando ist als \ref{lst:init} angegeben.
+\begin{lstlisting}[language=bash, caption={kubeadm init}, label=lst:init]
+/usr/bin/kubeadm init \
+--pod-network-cidr 10.244.0.0/16 \
+--apiserver-advertise-address 192.168.0.1 \
+--apiserver-cert-extra-sans "katanetes.netzlink.com,k8smaster,10.10.6.60,192.168.0.1,api.katernetes.local" \
+--token-ttl 24h0m0s \
+--token ad623b.c501de9c4fab8e7f
+\end{lstlisting}
+
+Danach wird noch die \textit{.kube/config} in das Home-Verzeichnis des Users kopiert und mit den richtigen Rechten versehen, damit dieser das Cluster managen kann.
+Die Rolle ist dem Anhang unter \ref{app:master_setup} beigefügt.
+
+Zu Beginn des Playbooks wird überprüft ob eine kubelet Configuration bereits vorhanden ist. 
+Ist dies der Fall wird Kubernetes zunächst resettet um anschließend eine funktionierende Version ausrollen zu können.
+Die entsprechende Rolle ist dem Anhang unter \ref{app:reset} beigefügt.
+
+
+\subsection{Join der Worker}
+Auch in dieser Rolle wird zunächst überprüft ob schon eine \textit{kubelet.conf} existiert, und der Zustand entsprechend zurückgesetzt, wenn dies zutrifft.
+Danach wird noch einmal überprüft ob IPv4 Forwarding korrekt konfiguriert ist, da diese Einstellungen durch das \textbf{kubeadm\ reset} beeinflusst werden könnten.
+Das eignetliche Join der Nodes ist ein einfaches Shell-Command, dem als Arguemnt der Token übergeben werden kann, der im vorheringen Absatz statisch gesetzt wurde.
+Die Rolle ist im Anhang unter \ref{app:join_role}
+
+
+\subsection{Weitere Konfigurationen}
+
+An diesem Punkt steht das komplette Kubernetes Cluster.
+Um einen vollen Funktionsumfang zu ermöglichen müssen allerdings noch einige Anwendungen auf dem Cluster deployed werden.
+
+\subsubsection{Networking}
+Damit die Pods untereinander kommunizieren können, muss ein Container Network aufgesetzt werden.
+In der Firma wurde hier Calico empfolen, dieses \ac{CNI} konnte allerdings auch nach ausgiebigem Testen nicht erflgreich mit Kata eingesetzt werden.
+Obwohl eigentlich eine Untersützung auf der Website dokumentiert wurde, konnten die Container, welche in der Kata-Runtime liefenn, nicht miteinander kommunizieren.
+Als Alternative wurde dann die Empfehlung von Kata befolgt, und zu Flannel\footnote{https://github.com/coreos/flannel} gewechselt. 
+Mit diesem \ac{CNI} wurden alle Netzwekprobleme, die zuvor bestanden behoben.
+
+\subsubsection{Ingress}
+
+\subsubsection{Storage}
+
+\subsubsection{Dashboard}

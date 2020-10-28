@@ -111,7 +111,8 @@ Wenn ein Playbok ausgeführt wird, kann die Hostgruppe angegeben werden, und all
 Für dieses Projekt wurden die Gruppen \textbf{master} und \textbf{woker} gebildet.
 Das Inventory kann im Anhang unter \ref{app:hosts_file} gefunden werden.
 
-\section{Installation und Konfiguration von Kata}
+\section{Kata-Container}
+\subsection{Kata Installation}
 
 Damit Kubernetes mit Kata-Containern als Runtime aufgebaut werden kann, muss die Runtime als erstes installiert werden.
 Kata benötigt eine \ac{KVM}-Software um zu funktionieren, hier wurde qemu-kvm gewählt.
@@ -129,9 +130,65 @@ Um den Kata-Manager auszuführen kann einfach das Skript mit \textbf{curl} herun
 \begin{lstlisting}[language=bash]
     $ bash -c "$(curl -fsSL https://raw.githubusercontent.com/kata-containers/tests/master/cmd/kata-manager/kata-manager.sh) install-packages"
 \end{lstlisting}
+Ansible bietet für diese Anwendungsfälle das \textbf{shell}-Modul, das auf den Zielsystemen ein Command in der Shell ausführen kann. 
+
+Danach kann über dasselbe Modul der \textbf{kata-check} ausgeführt werden, dieser überprüft ob auf dem System nun Kata-Container ausgeführt werden können.
+Nach der Überprüfung kann die Installation zunächst als erfolgreich betrachtet werden.
+
+Allerdings wird durch das verwenden des Shell-Modules ein wichtiges Prinzip beim Entwerfen von Ansible-Playbooks verletzt. 
+Diese Module werden immer ausgeführt, da sie imperativ und nicht deskriptiv sind. 
+Ansible basiert aber darauf, dass Playbooks wenn möglich idempotent sein sollen.
+Das beudetet, dass zunächst überprüft wird, ob der beschriebene Status bereits besteht und nur dann eine Änderung ausgeführt wird wenn dieser erst hergestellt werden muss. \cite{ansibel_idempotency}
+Ein mehrfaches Auführen der Playbooks sollte keine Änderung am Endzustand bewirken, und wo möglich sollten nur beim ersten Ausführen Änderungen ausgeführt werden. 
+
+Um diese Funktionalität auch in den imperativen Shell-Modulen abzubilden, wird zu Beginn des Playbooks überprüft, ob die Binary unter \textit{/usr/bin/kata\_runtime} bereits vorhanden ist. 
+Das Ergebnis wird in einer Variabeln gespeichert, und das Shell-Modul wird nur ausgeführt wenn diese \textbf{false} ist. 
+
+Der \textbf{kata-check} soll auf jeden Fall ausgeführt werden, da aber keine Änderungen durchgeführt werden wird \textbf{changed\_when} immer auf \textbf{false} gesetzt.
+
+Das Playbook befindet sich auch im Anhang unter \ref{app:kata_install}.
+
+Da hier Kubernets über \textbf{containerd} und den \textbf{contaienrd-shim-kata-v2} mit Kata kommuniziert wird in einem weiten Playbook Containerd über den Paket-Manager installiert und anschließend der Service gestartet.
 
 
+\subsection{Konfiguration von Kata und Containerd}
+
+Zur Konfiguration der beiden Programme muss jeweils eine Konfigurations-Date an der korrekten Stelle im File-System erstellt werden.
+Für Kata ist die Standart-Konfiguration zunächst ausreichend. 
+Um diese zu nutzen kann einfach die mitinstalliert \ac{TOML} Datei unter \textit{/usr/share/defaults/kata-containers/configuration.toml} nach \textit{/etc/kata-containers/config.toml} kopiert werden.
+
+An der Konfiguration für \textbf{contaienrd} müssen einige Änderungen vorgenommen werden, weswegen diese Datei aus dem Ansible-Projekt nach \textit{/etc/containerd/config.toml} kopiert wird, wo diese durch einen Service restart geladen wird.
+In dieser müssen die zur Verfügung stehenden Runtimes definiert werden.
+Dies kann unter dem Punkt Plugins getan werden.
+Dort wird der Name der Runtime definiert, über den diese später in den Manifesten referenziert werden kann.
+Außerdem wird der \ac{API} Typ angegeben, sowie die Location der Konfiguration der entsprechenden Runtime.
+Der wichtigste Teil der Konfiguration ist als Auszug unter \ref{lst:containerd_config} abgebildet, der Rest den Config kann im Anhang unter \ref{app:containerd_config} eingesehen werden.
+
+\begin{lstlisting}[language=bash, caption={/etc/contaienrd/config.toml}, label={lst:containerd_config}]
+[plugins]
+  [plugins."io.containerd.grpc.v1.cri"]
+    [plugins."io.containerd.grpc.v1.cri".containerd]
+      default_runtime_name = "runc"
+      [plugins."io.containerd.grpc.v1.cri".containerd.runtimes]
+        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.kata]
+          runtime_type = "io.containerd.kata.v2"
+          privileged_without_host_devices = true
+          [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.kata.options]
+            ConfigPath = "/etc/kata-containers/config.toml"
+\end{lstlisting}
+
+Nachdem diese Konfiguration abgeschlossen ist, ist die Kata-Runtime nicht nur installiert sondern auch für den Einsatz in Containerd und damit Kubernetes konfiguriert und einsatzbereit.
 
 
 \section{Installation des Kubernetes-Clusters}
+
+\subsection{Swap}
+In der Base-Rolle werden einige Grundeinstellungen gesetzt, wie die Zeitzone etc.
+Für dieses Projekt sind allerdings vor allem die Swap Einstellungen relevant, weswegen in diesem Absatz darauf eingegangen wird.
+\\
+Auch hier wird, um unnötige Operationen zu vermeiden, zunächst einmal überprüft, ob Swap auf der Maschine überhaupt aktiviert wird.
+Wenn Swap noch nicht deaktiviert wurde wird zunächst einmal mittels des Kommandos \textbf{swapoff -a} jeder Swap ausgeschaltet.
+Um diese Einstellung nach nach einem Reboot noch persistent zu haben, muss die \textit{/etc/fstab} bearbeitet werden.
+Zum einheitlichen Bearbeiten von Dateien bietet Ansible das \textbf{replace}-Modul an.
+Damit kann mithilfe von \ac{regex} nach bestimmen Strings gesucht werden, hier nach allen Strings die "swap" enthalten.
 

@@ -14,4 +14,116 @@
 \end{lstlisting}
 
 \section{Kata Install}
+\hfill \newline
+\label{app:kata_install}
+\begin{lstlisting}[language=yaml]
+---
+
+- name: check for Runtime
+  stat:
+    path: /usr/bin/kata-runtime
+  register: kata_runtime_presence
+
+- name: install qemu-kvm for kata virtualisation
+  apt:
+    name: qemu-kvm
+    state: latest
+
+- name: Install the kata-runtime 
+  shell: bash -c "$(curl -fsSL https://raw.githubusercontent.com/kata-containers/tests/master/cmd/kata-manager/kata-manager.sh) install-packages"
+  when: kata_runtime_presence.stat.exists == False
+
+- name: check if system is capable of running kata containers
+  shell: |
+    kata-runtime kata-check
+  register: result
+  changed_when: False 
+  failed_when: result.stdout.find("is capable of running Kata") == 1
+\end{lstlisting}
+
+\section{Containerd config.toml}
+\hfill \newline
+\label{app:containerd_config}
+\begin{lstlisting}[language=bash]
+version = 2
+root = "/var/lib/containerd"
+state = "/run/containerd"
+plugin_dir = ""
+disabled_plugins = []
+required_plugins = []
+oom_score = 0
+imports = ["/etc/containerd/config.toml"]
+
+[grpc]
+  address = "/run/containerd/containerd.sock"
+  tcp_address = ""
+  tcp_tls_cert = ""
+  tcp_tls_key = ""
+  uid = 0
+  gid = 1000
+  max_recv_message_size = 16777216
+  max_send_message_size = 16777216
+
+[ttrpc]
+  address = ""
+  uid = 0
+  gid = 0
+
+[debug]
+  address = ""
+  uid = 0
+  gid = 0
+  level = ""
+
+[metrics]
+  address = ""
+  grpc_histogram = false
+
+
+[cgroup]
+  path = ""
+
+[timeouts]
+  "io.containerd.timeout.shim.cleanup" = "5s"
+  "io.containerd.timeout.shim.load" = "5s"
+  "io.containerd.timeout.shim.shutdown" = "3s"
+  "io.containerd.timeout.task.state" = "2s"
+
+[plugins]
+  [plugins."io.containerd.grpc.v1.cri"]
+    [plugins."io.containerd.grpc.v1.cri".containerd]
+      snapshotter = "overlayfs"
+      default_runtime_name = "runc"
+      no_pivot = false
+      [plugins."io.containerd.grpc.v1.cri".containerd.runtimes]
+      [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+         runtime_type = "io.containerd.runc.v1"
+         [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+           NoPivotRoot = false
+           NoNewKeyring = false
+           ShimCgroup = ""
+           IoUid = 0
+           IoGid = 0
+           BinaryName = "runc"
+           Root = ""
+           CriuPath = ""
+           SystemdCgroup = false
+        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.kata]
+          runtime_type = "io.containerd.kata.v2"
+          privileged_without_host_devices = true
+          [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.kata.options]
+            ConfigPath = "/etc/kata-containers/config.toml"
+        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.katacli]
+         runtime_type = "io.containerd.runc.v1"
+         [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.katacli.options]
+           NoPivotRoot = false
+           NoNewKeyring = false
+           ShimCgroup = ""
+           IoUid = 0
+           IoGid = 0
+           BinaryName = "/usr/bin/kata-runtime"
+           Root = ""
+           CriuPath = ""
+           SystemdCgroup = false
+\end{lstlisting}
 

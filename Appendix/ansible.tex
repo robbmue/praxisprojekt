@@ -299,13 +299,13 @@ imports = ["/etc/containerd/config.toml"]
 
 - name: set IPv4 Forwarding on all the nodes
   sysctl:
-      name: net.ipv4.ip_forward # required. The dot-separated path (aka I(key)) specifying the sysctl variable.
-      reload: yes # not required. If C(yes), performs a I(/sbin/sysctl -p) if the C(sysctl_file) is updated. If C(no), does not reload I(sysctl) even if the C(sysctl_file) is updated.
-      state: present # not required. choices: present;absent. Whether the entry should be present or absent in the sysctl file.
-      sysctl_set: yes # not required. Verify token value with the sysctl command and set with -w if necessary
-      ignoreerrors: no # not required. Use this option to ignore errors about unknown keys.
-      sysctl_file: /etc/sysctl.conf # not required. Specifies the absolute path to C(sysctl.conf), if not C(/etc/sysctl.conf).
-      value: "1" # not required. Desired value of the sysctl key.:
+      name: net.ipv4.ip_forward 
+      reload: yes
+      state: present 
+      sysctl_set: yes
+      ignoreerrors: no 
+      sysctl_file: /etc/sysctl.conf
+      value: "1" 
     
 
 - name: kubeadm join
@@ -313,3 +313,66 @@ imports = ["/etc/containerd/config.toml"]
     kubeadm join --discovery-token-unsafe-skip-ca-verification --token={{ token }} k8smaster:6443
 \end{lstlisting}
 
+\section{Longhorn Deployment}
+\hfill \newline
+\label{app:longhorn}
+\begin{lstlisting}[language=yaml]
+---
+
+- name: Add an Apt signing key, uses whichever key is at the URL
+  apt_key:
+    url: https://baltocdn.com/helm/signing.asc
+    state: present
+
+- name: install apt-transport-https and pip
+  apt:
+    name: ['apt-transport-https', 'python3-pip']
+    state: latest
+
+- name: install pip libaries for k8s managed ansible
+  pip:
+    name:
+      - openshift  
+      - pyyaml
+      - kubernetes
+      - pyhelm
+
+- name: add helm repo
+  apt_repository:
+    repo: deb https://baltocdn.com/helm/stable/debian/ all main
+    state: present
+
+- name: apt update
+  apt:
+    state: latest
+    upgrade: dist
+    update_cache: yes
+  failed_when: False
+
+- name: install helm to manage deployments
+  apt:
+    name: helm
+    state: latest
+
+- name: add longhorn repo
+  git:
+    repo: https://github.com/longhorn/longhorn
+    dest: /home/alberto/longhorn
+
+- name: add longhorn namespace
+  become_user: alberto
+  k8s:
+    name: longhorn-system
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: deploy longhorn via helm
+  become_user: alberto
+  register: out
+  failed_when: >
+    ("re-use" not in out.stderr) and
+    (out.stderr != '')
+  command: |
+    helm install longhorn /home/alberto/longhorn/chart/ --namespace longhorn-system
+\end{lstlisting}

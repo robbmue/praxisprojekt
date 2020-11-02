@@ -252,7 +252,6 @@ Die Rolle ist im Anhang unter \ref{app:join_role}
 
 
 \subsection{Weitere Konfigurationen}
-
 An diesem Punkt steht das komplette Kubernetes Cluster.
 Um einen vollen Funktionsumfang zu ermöglichen müssen allerdings noch einige Anwendungen auf dem Cluster deployed werden.
 
@@ -265,7 +264,6 @@ Mit diesem \ac{CNI} wurden alle Netzwekprobleme, die zuvor bestanden behoben.
 \\
 Das Netzwerk kann mittels \textbf{kubectl apply} ausgerollt werden.
 Damit das Deployment durchgeführt werden kann, muss Ansible an dieser Stelle von dem Root User zu dem Alberto-User wechseln, da nur für ihn die Kube-Config eingerichtet ist. \todo{Alberto früher erwähnen}
-
 
 \subsubsection{Ingress}
 Für Ingress wurde zunächst auf Empfehlung von Kollegen traeffik getestet. 
@@ -311,10 +309,11 @@ Diese beinhaltet das Hinzufügen der Verschlüsselungs Keys und des helm-Reposit
 Wenn das Helm Paket installiert ist wird das Longhorn Repository über das \textbf{git} Modul hinzugefügt, ein Namespace für longhorn angelegt und dann Longhorn deloyed.
 Die komplette Rolle ist dem Anhang unter \ref{app:longhorn} beigefügt.
 
-
 \subsubsection{Dashboard}
-Die letzte Funktionalität, die für ein vollwertiges Kubernetes-Cluster noch fehlt, ist eine Möglichkeit, die Pods in irgendeiner ARt und Weise zu monitoren.
+Die letzte Funktionalität, die für ein vollwertiges Kubernetes-Cluster noch fehlt, ist eine Möglichkeit, die Pods in irgendeiner weise zu monitoren.
 Das Kubernetes Dashboard bietet simple Monitoring-Funktionen sowie die Möglichkeit Änderungen durchzuführen, Ressourcen zu löschen, erstellen und einzusehen.
 Um das Dashboard zu installieren wurde mit der aktuellen Installationsanleitung\footnote{https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/} von Kubernetes gearbeitet.
 Zum Zugriff auf das Dashbaord muss User und ein ClusterRoleBinding erstellt werden. 
 Mit dem Token dieses Users kann sich dann an dem Dashboard angemeldet werden, um dieses sinnvoll nutzen zu können.\footnote{https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md}
+
+\todo{monospaceschriftart}

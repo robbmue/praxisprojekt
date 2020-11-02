@@ -68,7 +68,9 @@ Das Problem ließ sich zwar in der dafür aufgebrachten Zeit nicht lösen, da di
 Die grundlegenden Tests können damit als abgeschlossen betrachtet werden und es kann mit dem nächsten Schritt, dem Übersetzen der docker-compose Datei zu Kubernetes Manifesten, begonnen werden. 
 Zunächst muss dieser Schritt getan werden, damit anschließend die Runtime auf Kata umgestellt und dann gedebugged werden kann. 
 
+
 \section{Migration der Anwendung nach Kubernetes}
+
 \subsection{Struktur}
 Als erstes wurde die Struktur der Kubernetes Anwendung geplant. 
 Die schon in Absatz \ref{ref:sormas_strucure} festgehalten, können einige Container ignoriert werden, da Ihre Funktion standartmäßig in Kubernetes integriert ist. 
@@ -98,14 +100,17 @@ Das Deployment erstellt dann das entsprechende ReplicaSet und dieses den Pod.
 Der Service wählt mittels des Selectors allerdings das ReplicaSet und nicht den Pod selbst.
 
 
-\subsection{Kompose}
-Glücklicherweise ist das Übersetzen von \textit{docker-compose.yaml} Dateien zu Kubernetes Manifesten eine Aufagbe, die heute regelmäßig durchgeführt werden muss.
-Diesem Umstand ist zu verdanken, dass es Tools wie \texttt{kompose}\footnote{https://kompose.io/} gibt. 
-Kompose ist ein Tool um Docker Compose \ac{YAML} Dateien zu Kubernetes Manifesten zu konvertieren.
-Das Tool ist nicht perfekt, und es müssen noch viele Anpassungen durchgeführt werden, aber es hilft dabei, eine grundlegende Dokument-Struktur zu schaffen, mit der dann weitergearbeitet werden kann. 
-Mit dem Befehl \\
-\texttt{kompose convert \-f docker\-compose.yml \-o komposed\_convert} \\
-lässt sich dieses Grundlegende Konstrukt erstellen. 
+\subsection{Schreiben der Kubernetes Manifeste}
+
 
 
 \section{Migration der Anwendung zur Kata-Runtime}
+
+
+\subsection{Migration des Payara Servers}
+
+
+\subsection{Migration der PostgreSQl-Datenbank}
+
+
+\section{Helm Templating}

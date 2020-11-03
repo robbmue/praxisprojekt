@@ -48,7 +48,7 @@ Container können also, wie auch \ac{VM}s, als isolierte Umgebungen betrachtet w
 
 Container virtualisieren auf \ac{OS}-Level und auf dem gleichen Kernel wie das \ac{OS}.
 Dadurch können sie deutlich schneller gestartet werden und haben einen deutlich kleineren Overhead als \ac{VM}s, da sie kein komplett funktionsfähiges Betriebssystem benötigen um zu laufen.
-Der komplette Speicherplatz-, CPU- und Arbeitsspeicher-Verbrauch des \ac{OS} wird somit an Ressourcen auf dem Host-System eingespart.
+Der komplette Speicherplatz-, \ac{CPU}- und Arbeitsspeicher-Verbrauch des \ac{OS} wird somit an Ressourcen auf dem Host-System eingespart.
 
 \subsubsection{Gleichbleibende Umgebung}
 Da in dem Container immer von einer gleichbleibenden Umgebung ausgegangen werden kann, wird die Produktivität der einzelnen Entwicklern deutlich gestiegert.
@@ -60,7 +60,7 @@ Ob Linux, Mac, Windows, \ac{VM}s, Datacentern oder Bare Metal.
 Dies wird nicht zuletzt durch das sehr populäre Docker Image Format gewährleistet, das überall sehr verbreitet ist. 
 
 \subsubsection{Isolation}
-Arbeitsspeicher, CPU und Speicher sind auf Betriebssystemebene virtualisiert und somit bis zu einem gewissen Level vom Rest des Systems abgegrenzt. 
+Arbeitsspeicher, \ac{CPU} und Speicher sind auf Betriebssystemebene virtualisiert und somit bis zu einem gewissen Level vom Rest des Systems abgegrenzt.
 Die Isolation ist jedoch weniger stark als bei \ac{VM}s.
 
 
@@ -235,7 +235,7 @@ Das Kata-Container Projekt entstand aus der Fusion von zwei vorhergehenden Proje
         Intel erschuf eine alternative Container Runtime, in der Container als minimale \ac{VM}s gestartet wurden, den Fokus setzten sie dabei auf Performance(<100ms boot time) und Sicherheit.\cite[S.1]{Kata_Containers}
         \item runv
         \\Ist ein ähnliches Projekt von der Firma "Hyper", die selbst eine Runtime entwickelt haben, die einen Hypervisor nutzt.
-        Sie haben Ihren Fokus auf den Support vieler CPU-Architekturen und Hypervisor gelegt.\cite[S.1]{Kata_Containers}
+        Sie haben Ihren Fokus auf den Support vieler \ac{CPU}-Architekturen und Hypervisor gelegt.\cite[S.1]{Kata_Containers}
 \end{itemize}
 2016 hielten beide Firmen eine Presentation über ihr jeweiliges Produkt auf der \say{Open Source Summit} in Berlin und wurden so aufeinander aufmerksam.
 Ein Jahr später, in 2017, wurde beide Produkte unter der \ac{OSF} zu Kata-Containers zusammengeführt.\cite{kata_history}
@@ -251,7 +251,7 @@ Ein Jahr später, in 2017, wurde beide Produkte unter der \ac{OSF} zu Kata-Conta
 
 In der Abbildung \ref{fig:kata_vs_traditional} werden die wichtigsten Unterschiede dargestellt.
 Traditionelle Container laufen alle auf demselben Kernel. 
-Das bedeutet, dass jeder Container direkt auf den Ressourcen(CPU, Memory, Network, Storage) des Hosts läuft. 
+Das bedeutet, dass jeder Container direkt auf den Ressourcen(\ac{CPU}, Memory, Network, Storage) des Hosts läuft. 
 Eine Isolation wird durch Namespaces und cgroups realisiert.
 \\
 Bei den Kata-Containern hingegegen werden die Container in \ac{VM}s verpackt, von denen jede seinen eigenen Kernel bekommt.

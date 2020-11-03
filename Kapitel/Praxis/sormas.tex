@@ -102,6 +102,76 @@ Der Service wählt mittels des Selectors allerdings das ReplicaSet und nicht den
 
 \subsection{Schreiben der Kubernetes Manifeste}
 
+Alle geschriebenen Manifeste, auch die auf die in diesem Abschnitt nicht weiter eingegangen wird, sind auf Github veröffentlicht und können dort unter \url{https://github.com/robbmue/katanetes_sormas/tree/master/manifests} eingesehen werden. 
+
+Beim Schreiben der Manifeste diente die \textit{docker-compose.yml}\footnote{https://github.com/hzi-braunschweig/SORMAS-Docker/blob/master/docker-compose.yml} als Vorlage.
+Aus dieser wurden zunächst einmal alle Services eliminiert die in Kubernets nicht weiter benötigt werden, namentlich den Autoheal, den Apache2 Webserver und den pg-dump.
+Die beiden letzen Teile der Anwendung wurden dann entsprechend der vorhergehenden Planung in jeweils ein Deployment und ein StatefulSet übersetzt.
+Zuerst wurde ein Namespace für die komplette Anwendung angelegt, in dem alle restlichen Teile deployed werden.
+
+\hfill \newline
+\subsubsection{Payara Deployment}
+Bei dem Payara Server ist vor allem wichtig, deren speziellen Port in das Manifest miteinzubinden.
+Payara nutzt als Standart-Port 6080 und als Admin-Port 6048, diese werden unter den Namen \texttt{payara} und \texttt{payara-admin} dem Deployment hinzugefügt.
+Abhängig von diesen ist auch die liveness- und readinessProbe, hier werden diese mit einem \ac{HTTP}-GET auf den entsprechenden Port und den \ac{SORMAS}-Pfad \texttt{/sormas-ui/login} realisiert.
+Wenn diese Seite erreichbar ist, kann von einer funktionierenden Instanz ausgegangen werden.
+Der Service, der auf diese Anwendung verweist, wird so konfiguriert, dass dieser auf Port 80 lauscht aber alle eingehenden Anfragen an Port 6080 des Payara-Pods weiterleitet.
+So kann der ungewöhnliche Port des Payara-Servers in einen Standart-Port umgewandelt werden. 
+Der Ingress wiederum zeigt auf den Service und Sorgt dafür, dass die Anwendung von außerhalb erreichbar ist.
+
+Des weiteren muss das \ac{PV} mittels des \ac{PVC} eingebunden werden und die Enviroment-Variablen müssen gesetzt werden. 
+Der \ac{PVC} wird unter dem Punkt \texttt{volumes} dem Pod zugewiesen und unter \texttt{volumeMounts} wird der Pfad angegeben, an der das Volume eingahngen werden soll. 
+Die Variablen setzt man unter dem Punkt \texttt{env}, hier kann sowohl auf ein Secret, als auch auf eine ConfigMap zugegriffen werden und diese zu setzen.
+Es könnten auch direkt in dem Deployment die korrekten Werte gesetzt werden, mit der ConfigMap und dem Secret wird jedoch erreicht, dass Änderungen nur an möglichst wenigen Stellen vorgenommen werden müssen.
+Außerdem wird auch das StatefulSet auf die gleichen Dateien zugreifen, und so kann garantiert werden, dass beide Anwendungen übereinstimmende Werte geliefert bekommen.
+
+Zuletzt werden noch Limits für \ac{CPU} und Memory-Nutzung gesetzt. 
+
+Auf die Manifeste für den \ac{PVC}, die ConfigMap und das Secret soll hier nicht weiter eingegangen werden da diese keine Großen Besonderheiten enthalten. 
+
+\hfill \newline
+\subsubsection{SORMAS StatefulSet}
+Für die Datenbank wurden Konfigurationen analog zu denen des Payara-Servers vorgenommen.
+Der Port 5432 wurde freigegeben, die Enviroment Variablen und der \ac{PVC} wurden eingebunden sowie limits gesetzt.
+Eine Besonderheit in diesem Manifest ist, dass mit dem \texttt{args} Parameter gearbeitet werden muss. 
+Es muss eine Änderung an dem Parameter \texttt{max\_prepared\_connections} in der \textit{postgresql.conf} vorgenommen werden, damit \ac{SORMAS} starten kann. 
+Der Postgres Container startet immer mit dem \texttt{psql} Kommando, also kann mittels des Arguments \texttt{-c config\_file=/etc/postgresql/postgresql.conf} die Config eingelesen werden.
+
+Auf den Service und den \ac{PVC} soll an dieser Stelle nicht weiter eingegangen werden, sie können auf Github nachgelesen werden. 
+
+
+\hfill \newline
+\subsubsection{Backup}
+Als Backup-Lösung wurde Stash\footnote{https://stash.run/\#} von AppsCode\footnote{https://appscode.com/} gewählt.
+Die Software erlaubt es unter anderem Backups auf einem lokalen Storage zu erstellen und mit Datenbankdumps zu arbeiten, nicht nur mit Volume Snapshots.
+
+Bei Netzlink wird ein lokaler Minio\footnote{https://min.io/} \ac{S3}-Storage gehostet, in dem die Backups gespeichert werden können.
+Damit Stash die Verbindung zu diesem aufbauen kann muss zunächst ein Secret erstellt werden, dass die Anmeldedaten für den \ac{S3} Storage beinhaltet.
+Aufbauend darauf kann dann die \ac{CRD} \texttt{Repository} deployed werden. 
+Diese gibt die Addresse des \ac{S3} Storages an, sowie den Bucket in den gespeichert werden soll und das zur Organisation verwendete Prefix.
+Außerdem beinhaltet die Repository-Ressource auch das zuvor definierte Secret und bindet dieses so an das Repository.
+\\
+Als nächstes wird die \ac{CRD} \texttt{AppBinding} erstellt. 
+Über dieses AppBinding wird benötigt um auf die Datenbank zuzugreifen. 
+Dazu braucht es den Service und Port, sowie das Schema und den Typen der Datenbank und letzten endes ein Secret, aus dem der Datenbanknutzer und sein Password ausgelesen werden können.
+In dieser einen \ac{CRD} sind dann also alle Informationen gesammelt um auf die Datenbank zuzugreifen und in dem Repository ist definiert wohin das Backup gespeichert werden soll.
+Als letztes fehlt also nur noch eine Ressource, die das Backup anstößt.
+\\
+Diese \ac{CRD} nennt sich \texttt{BackupConfiguration}. 
+In ihr wird 
+\begin{itemize}
+    \item das \texttt{AppBinding} und das \texttt{Repository} zusammengetragen
+    \item der auszuführende Task angegeben (in dem Version und Art der Datenbank festgelegt sind)
+    \item eine \texttt{retentionPolicy} definiert (diese gibt an wie viele der erstellten Backups erhalten bleiben sollen)
+    \item der \texttt{schedule} in CronJob Syntax angegeben
+\end{itemize}
+Stash erzeugt aus diesen \ac{CRD}s dann Ressourcen, mit denen Kubernetes arbeiten kann.
+Alle benötigten Informationen werden in einem Kubernetes nativen CronJob zusammengetragen.
+Ein CronJob in Kubernets erstellt sich immer zur definierten Zeit einen Job. 
+Ein Job wiederum erstellt einen oder mehrere Container, die nur eine genau abgegrenzte Aufgabe haben, und stellt sicher dass diese erfolgreich terminieren. 
+In diesem Fall ist die Aufgabe das Erstellen das Datenbankdumps, das Verschlüsseln und Kopieren der verschlüsselten Daten auf den \ac{S3} Storage plus das Löschen der überschüssigen, bereits vorhandenen Datenbankdumps.
+Nach der erfolgreichen Ausführung all dieser Operationen terminiert der Job und alle Pods werden gestoppt. 
+So kann garantiert werden, dass das Backup nur während der Ausführung Compute-Ressourcen verbraucht. 
 
 
 \section{Migration der Anwendung zur Kata-Runtime}

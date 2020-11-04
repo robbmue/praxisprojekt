@@ -46,6 +46,7 @@ echo kata-runtime: >> startuptime_comparison
 \end{lstlisting}
 
 \subsection{Webapp in Kata}
+\label{ref:kata_plug_and_play}
 Im nächsten Test soll das Deployment einer Web-Anwendung in Kata gestestet werden. 
 Dafür habe ich das Docker-Image eiener Website zum Thema der Web\ac{API}s verwendet, das während des letzten Semesters erstellt wurde, gewählt. 
 Tatsächlich mussten hier gar keine Anpassungen oder Ähnliches vorgenommen werden. 
@@ -173,14 +174,86 @@ In diesem Fall ist die Aufgabe das Erstellen das Datenbankdumps, das Verschlüss
 Nach der erfolgreichen Ausführung all dieser Operationen terminiert der Job und alle Pods werden gestoppt. 
 So kann garantiert werden, dass das Backup nur während der Ausführung Compute-Ressourcen verbraucht. 
 
+Wird nun eine \ac{SORMAS}-Instanz mit diesen Manifesten deployed ist die komplette Funktionalität der urspürunglichen Anwendung abgebildet.
+
+\subsubsection{Tests}
+\label{ref:tests}
+Als erstes wurde kontrolliert, ob der Payara Server erreichbar ist.
+Dazu muss ein Host-Eintrag auf dem Localhost gesetzt werden, da das Test Cluster nicht in der \ac{DMZ} aufgebaut wurde, keinen \ac{DNS} Eintrag hat und nur als dem Netzlink Netzwerk zu erreichen ist. 
+Wenn der Payara-Server erreichbar ist, wird als nächstes überprüft, ob das \ac{SORMAS}-\ac{GUI} erreichbar ist.
+Auf der \ac{GUI} kann dann gechecked werde, ob sich mit den konfigurierten Usern angemeldet werden kann und somit der Login Prozess funktioniert.
+Nachdem sich angemeldet wurde, werden einige Fälle eingetragen, bearbeitet und gelöscht um die Funktionalität der Anwendung sowie die Postgres Integration zu prüfen.
+
+Um die Autoheal Funktion zu testen, kann einfach der Sormas Pod gelöscht und dann die Erstellung des neuen Pods abbgewartet werden.
+Wenn dieser von dem ReplicaSet wieder gebaut wird, ist die Autoheal Funktion korrekt abgebildet.
+
+Zuletzt wird die BackUp Funktion überprüft.
+Dazu werden einige Einträge in der Datenbank vorgenommen, und ein BackUp-Job angestoßen. 
+Nachdem dieser durchgelaufen ist werden die Daten aus der PostgreSQL-Datenbank gelöscht.
+Über einen Restore-Job wird versucht die zuvor gelöschten Daten aus den Datenbankdump wiederherzustellen. 
+Wenn der Restore-Job erfolgreich beendet wird und die Daten wieder in der Anwendung auftauchen, ist die Backupfunktionalität positiv getestet.
+
 
 \section{Migration der Anwendung zur Kata-Runtime}
+Theoretisch funktioniert die Migratio der Anwendung nach dem gleichen Plug-and-Play Prinzip wie bereits in Abschnitt \ref{ref:kata_plug_and_play} beschrieben.
+Die Runtime ist für Containerd bereits in Abschnitt \ref{ref:kata_config} als Plugin definiert und muss nur als Parameter in die Manifeste eingepflegt werden.
+Der Parameter wird wie im Quelltext \ref{lst:runtimeClassName} gesetzt.
+Leider ließ sich dieses Verfahren jedoch in der Praxis nicht so problemlos umsetzen, die Probleme und Lösungen sollen in den nächsten Absätzen aufgezeigt werden. 
+
+\begin{lstlisting}[language=yaml, caption=runtimeClassName, label=lst:runtimeClassName]
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sormas
+  namespace: ga-test
+spec: 
+  replicas: 1
+  selector: 
+    matchLabels:
+      run: sormas
+  template:
+    metadata:
+      labels:
+        run: sormas
+    spec:
+      runtimeClassName: kata
+      containers:
+        - image: hzibraunschweig/sormas-application
+          name: sormas
+...
+\end{lstlisting}
 
 
 \subsection{Migration des Payara Servers}
+Der Payara Server wurde als erstes zur Migration ausgewählt. 
+Der Parameter wurde entsprechend gesetzt und die komplette Anwendung wurde ausgerollt. 
+
+Zuerst schien es als würde die Anwendung auf dem Payara-Server gar nicht starten. 
+Der Payara Server selbst war zwar erreichbar, doch die Anwendung darauf war nicht erreichbar.
+Beim genaueren Beobachten des Server konnte festgestellt werden, dass die \ac{SORMAS}-\ac{GUI} für einige Sekunden erreichbar ist und man sich sogar anmelden kann, bis diese aus irgendeinem Grund wieder verschwandt.
+In den Logs wurden tausende Zeilen Java Stack Traces ausgegeben. \todo{Stack traces nachstellen. Recherche auf Home-Laptop! History ca. Anfang September}
+Die Analyse der Logs ergab, dass die Anwendung zu einem bestimmten Zeitpunkt \texttt{succsessfully autodeployed} wurde, der Payara-Server aber nicht wie unter runc an dieser Stelle den Deployment Process beendete sondern wieder damit begann die Annwendung zu deployen.
+Als diese Erkenntnis gewonnen war, wurde untersucht welche Dateien zu welchen Zeitpunkten im Filesystem erstellt wurden und wie sich diese von dem Deployment-Prozess in runc unterscheiden. 
+Es ließ sich jedoch keine Abweichung während des Deployment Prozesses feststellen.
+Auch nach langer intensiver Recherche und Troubleshooting mit qualifizierten Kollegen konnte kein Grund dafür gefunden werden, dass der Autodeployment-Prozess nicht nach dem erfolgreichen Ausrollen der Anwendung stoppt. 
+\\
+Das Autodeployment Feature von Payara muss also für unseren Use-Case umgangen werden. 
+Dazu wurden die offiziellen Dockerfiles der \ac{SORMAS}-Applikation\footnote{https://github.com/hzi-braunschweig/SORMAS-Docker/tree/master/sormas} untersucht. 
+In diesem werden die Skripte \textit{setup-server.sh} und \textit{start-server.sh} genutzt.
+In dem \textit{start-server.sh} Skript zum Deployen der Anwendung als letztes alle \textit{.ear} und \textit{.war} Dateien in den Autodeployment Ordner kopiert.
+Wird dann der Payara Server mittels \texttt{asadmin start-domain} gestartet versucht der Server alle Datein in dem Autodeployment Ordner auszurollen.
+Um zu verhindern, dass der Autodeploy-Prozess die Anwendung immer wieder zerschießt, muss Sie auf einem anderen Weg ausgerollt werden.
+Dazu wurde das \textit{start-server.sh} Skript entsprechend angepasst, sodass die einzelnen \textit{.ear} und \textit{.war} Dateien mittels des \texttt{asadmin deploy} Kommandos ausgerollt werden.
+Mit diesen Änderungen wird die Autodeploy-Funktion komplett ausgesetzt, sodass die Anwendung nun nicht mehr vom Payara-Server selbst abgeschossen werden sollte.
+Es wurde ein neues Container-Image mit diesen Anpassungen erstellt und auf der Docker-Registry\footnote{https://hub.docker.com/repository/docker/robbmue/sormas\_kata} veröffentlicht, damit Kubernetes sich dieses Image ziehen kann.
+Nachdem das neue Image in die Manifeste eingebunden, und die Anwendung neu ausgerollt wurde, konnte mit den zuvor unter Abschnitt \ref{ref:tests} beschrieben Tests gezeigt werden, dass der \ac{SORMAS}-Payara nun unter Kata voll funktionsfähig war.
 
 
 \subsection{Migration der PostgreSQl-Datenbank}
+Als nächster und letzter Teil der Anwendung muss nun noch die Datenbank mit ihrem eigenen Kernel versehen werden.
+Dazu wurden zuerst wieder der benötigte Parameter in dem StatefulSet Manifest gesetzt und anschließend die Anwendung ausgerollt.
+
+
 
 
 \section{Helm Templating}

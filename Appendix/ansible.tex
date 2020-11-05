@@ -64,24 +64,10 @@ imports = ["/etc/containerd/config.toml"]
   max_recv_message_size = 16777216
   max_send_message_size = 16777216
 
-[ttrpc]
-  address = ""
-  uid = 0
-  gid = 0
-
-[debug]
-  address = ""
-  uid = 0
-  gid = 0
-  level = ""
-
 [metrics]
   address = ""
   grpc_histogram = false
 
-
-[cgroup]
-  path = ""
 
 [timeouts]
   "io.containerd.timeout.shim.cleanup" = "5s"

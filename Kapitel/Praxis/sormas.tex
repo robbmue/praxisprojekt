@@ -1,4 +1,5 @@
 \chapter{Migration von Sormas}
+\todo{sich's aus dem text verbannen}
 
 \section{SORMAS}
 \label{ref:sormas_strucure}
@@ -9,7 +10,7 @@ Diese beschriebt 5 Container, die zusammen die Anwendung bilden.
     \item sormas-application \\ Der Payara-Server auf dem die \ac{SORMAS}-Applikation gehostet wird.
     \item sormas-postgres \\ Die Datenbank in der die Daten aus der Anwendung gespeichert werden.
     \item sormas-pg-dump \\ Dieser Container ist ausschließlich dafür verantwortlich in bestimmten Zeitabständen einen Datenbankdump der Postgres-Datenbank zu machen.
-    \item sormas-apache2 \\ Der Webserver ist für die Terminierung der \ac{SSL}-Zertifikate Froggo
+    \item sormas-apache2 \\ Der Webserver ist für die Terminierung der \ac{SSL}-Zertifikate verantwortlich
     \item autoheal \\ Damit können gestoppte oder ungesunde Container neu gestartet werden
 \end{itemize}
 Da die Anwendung nach Kubernetes migriert werden soll, können einige der Funktionen von den Kubernetes-eigenen Funktionalitäten übernommen werden. 
@@ -71,7 +72,7 @@ Zunächst muss dieser Schritt getan werden, damit anschließend die Runtime auf 
 
 
 \section{Migration der Anwendung nach Kubernetes}
-
+\todo{Umstrukturierung}
 \subsection{Struktur}
 Als erstes wurde die Struktur der Kubernetes Anwendung geplant. 
 Die schon in Absatz \ref{ref:sormas_strucure} festgehalten, können einige Container ignoriert werden, da Ihre Funktion standartmäßig in Kubernetes integriert ist. 
@@ -181,7 +182,7 @@ Wird nun eine \ac{SORMAS}-Instanz mit diesen Manifesten deployed ist die komplet
 Als erstes wurde kontrolliert, ob der Payara Server erreichbar ist.
 Dazu muss ein Host-Eintrag auf dem Localhost gesetzt werden, da das Test Cluster nicht in der \ac{DMZ} aufgebaut wurde, keinen \ac{DNS} Eintrag hat und nur als dem Netzlink Netzwerk zu erreichen ist. 
 Wenn der Payara-Server erreichbar ist, wird als nächstes überprüft, ob das \ac{SORMAS}-\ac{GUI} erreichbar ist.
-Auf der \ac{GUI} kann dann gechecked werde, ob sich mit den konfigurierten Usern angemeldet werden kann und somit der Login Prozess funktioniert.
+Auf der \ac{GUI} kann dann gechecked werden, ob mit den konfigurierten Usern eine Anmeldung durchgeführt werden kann und somit der Login Prozess funktioniert.
 Nachdem sich angemeldet wurde, werden einige Fälle eingetragen, bearbeitet und gelöscht um die Funktionalität der Anwendung sowie die Postgres Integration zu prüfen.
 
 Um die Autoheal Funktion zu testen, kann einfach der Sormas Pod gelöscht und dann die Erstellung des neuen Pods abbgewartet werden.
@@ -253,7 +254,71 @@ Nachdem das neue Image in die Manifeste eingebunden, und die Anwendung neu ausge
 Als nächster und letzter Teil der Anwendung muss nun noch die Datenbank mit ihrem eigenen Kernel versehen werden.
 Dazu wurde zuerst wieder der benötigte Parameter in dem StatefulSet Manifest gesetzt und anschließend die Anwendung ausgerollt.
 
+\todo{Problmestellung auf Laptop recherchieren, ungefähr 10.9.}
 
+Nach ausführlichen Tests mit dem Image des HZI ließen sich die Netzwerk-Probleme noch immer nicht beheben.
+Um die Probleme zu verstehen wurde mit allen möglichen Postgres-Images experimentiert.
+Nach einigen Tests ließ sich feststellen, dass die Probleme ausschließlich in den Alpine-Versionen der Postgres Images auftreten, aber nicht in den Postgres Images auf Debian Basis. 
+Die Herausforderung besteht also darin, das Image des \ac{HZI}, das auf dem Postgres-Image auf Alpine Basis aufbaut, in einem neuen Image abzubilden, das auf dem Postgres-Debian image basiert.
+Die Alpine Version wurde vermutlich gewählt um den Container an sich möglichst klein zu halten. 
+In \ref{lst:alpine_postgres_size} wird die Größe des Images ermittelt.
+Diese beträgt \texttt{450MB}.
+
+\begin{lstlisting}[language=bash, caption={Größe des Postgres Images}, label=lst:alpine_postgres_size]
+$  ~ docker images | awk 'NR==1 || /^hzibraunschweig\/sormas-postgres/ {printf "%-33s %-10s %s\n", $1, $2, $NF}'
+REPOSITORY                        TAG        SIZE
+hzibraunschweig/sormas-postgres   2.8.0      450MB
+\end{lstlisting}
+
+Die Untersuchung des Images ergab, dass sehr viele Pakete installiert werden müssen um das Modul \texttt{temporal\_tables} für Postgres zu installieren.
+Die folgenden Pakete werden benötigt um das Modul zu installieren und compilieren:
+\begin{itemize}
+  \item postgresql-server-dev-10
+  \item pgxnclient 
+  \item make
+  \item gcc
+\end{itemize}
+
+Nach der Installation des Modules werden sie jedoch nicht mehr benötigt und können deswegen mittel des \texttt{apt}-Feature \texttt{autoremove} wieder entfernt werden. 
+So wird versucht das Image trotz der größeren Basis klein zu halten.
+Eine Überprüfung der Image-Größe nach dem Bauen ergab, dass das Image durch die Anpassungen sogar kleiner geworden ist und nun nur noch \texttt{373MB} beträgt, wie \ref{lst:debian_postgres_size} zeigt.
+
+\begin{lstlisting}[language=bash, caption={Größe des Debian Images}, label=lst:debian_postgres_size]
+$  ~ docker images | awk 'NR==1 || /^robbmue\/postgres_kata/ {printf "%-33s %-10s %s\n", $1, $2, $NF}'
+REPOSITORY                        TAG        SIZE
+robbmue/postgres_kata             latest     373MB
+\end{lstlisting}
+
+Es wurde ein neues Container-Image mit diesen Anpassungen erstellt und auf der Docker-Registry\footnote{https://hub.docker.com/repository/docker/robbmue/postgres\_kata} veröffentlicht, damit Kubernetes sich dieses Image ziehen kann.
+Nachdem das neue Image in die Manifeste eingebunden, und die Anwendung neu ausgerollt wurde, konnte mit den zuvor unter Abschnitt \ref{ref:tests} beschrieben Tests gezeigt werden, dass die Postgres-Datenabnk nun unter Kata voll funktionsfähig war.
+
+Das neue Postgres-Dockerfile ist dem Anhang unter \ref{app:small_postgres} zu entnehmen.
 
 
 \section{Helm Templating}
+Im letzten Schritt soll das Deployment nun soweit vereinfacht werden, dass das Bereitstellen einer kompletten Instanz über einen einzigen Befehl durchgeführt werden kann.
+Dazu wird \texttt{helm} eingesetzt. 
+Die Software bietet vielfältige Möglichkeiten, von denen für dieses Projekt jedoch nur die Templating-Funktion genutzt wird.
+Für jedes \ac{GA} soll ein eigener Namespace erstellt werden, zuerst wird also die Namespace Ressoruce getemplated.
+Für den Namespace wird der Release-Name verwendet, sodass dafür nichtmal die \textit{values.yaml} angepasst werden muss, in der alle anderen Variablen für das Templating gesetzt werden. 
+Der Release-Name wird direkt in dem \texttt{helm install} Befehl mit angegeben, die Syntax ist unter \ref{lst:helm_install} beschrieben, in dem Beispiel wäre das "beispielgesundheitsamt".
+Im Anhang unter \ref{app:namespace_template} wird gezeigt wie mit dem Release Name gearbeitet wird. 
+Analog dazu werden die Namespaces aller anderen Ressourcen definiert. 
+
+\begin{lstlisting}[language=bash, caption={Syntax des \texttt{helm install} Kommanods}, label=lst:helm_install]
+helm install <beispielgesundheitsamt> ./sormas
+\end{lstlisting}
+
+Alle anderen Variablen werden über die \textit{values.yaml} gesetzt.
+In dieser kann mit Objekten gearbeitet werden, für dieses Projekt gibt es beispielsweise ein Objekt \texttt{image} das die Objekte \texttt{sormas} und \texttt{postgres} enthält, in denen dann Name und Version des Images definiert wird. 
+Dieses Beispiel ist dem Anhang unter \ref{app:values_yaml} beigefügt.
+Auf diese Werte wird ähnlich wie auf den Release-Name zugegriffen, nur dass der Release durch Values ersetzt wird.
+Auf den Sormas Image Namen mit Version wird exempli causa folgenderweise zugegriffen: \texttt{ \{\{ .Values.image.sormas.name \}\}:\{\{ .Values.image.sormas.version\}\} }
+
+Helm bietet auch die Option, Werte die aus der Values Datei eingelesen werden in Pipelines zu senden um sie in irgendeiner Art zu transformieren. 
+Diese Funktionalität ermöglicht es, die Werte für die Secrets im Klartext in die Values zu schreiben, um sie dann über eine Pipeline zu verschlüsseln, wie unter \ref{app:secret_template} demonstriert.
+Pipelines werden außerdem für das erstellen der ConfigMap Template genutzt. 
+An dieser Stelle wird vor allem die \texttt{quote} Funktion verwendet, damit beim Bearbeiten der Values nicht darauf geachtet werden muss, alle Ints zu Strings umzuwandeln. 
+Nötig ist das, da ConfigMaps ausschließlich mit Strings arbeiten können.
+Für die ConfigMap wird außerdem die \texttt{default} Funktion verwendet, um für Werte die nicht zwingend gesetzt werden müssen einen leeren String einzusetzten falls sie nicht überschrieben werden.
+Das Ergebnis ist dem Anhang unter \ref{app:configmap_template} beigefügt.

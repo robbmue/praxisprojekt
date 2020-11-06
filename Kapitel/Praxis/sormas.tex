@@ -23,6 +23,7 @@ Doch zunächst sollen einzelne Funktionen von Kata getestet werden.
 
 
 \section{Erste Tests mit der Kata Runtime}
+\label{ref:lokale_kata_tests}
 Noch bevor begonnen wurde das Cluster aufzubauen, wurden erste Test mit der Kata-Runtime durchgeführt. 
 Mit diesen wurde überprüft ob schon im voraus Probleme identifiziert werden konnten, die die Umsetzung verhindern würden. 
 
@@ -226,6 +227,7 @@ spec:
 
 
 \subsection{Migration des Payara Servers}
+\label{ref:payara_kata}
 Der Payara Server wurde als erstes zur Migration ausgewählt. 
 Der Parameter wurde entsprechend gesetzt und die komplette Anwendung wurde ausgerollt. 
 
@@ -251,6 +253,7 @@ Nachdem das neue Image in die Manifeste eingebunden, und die Anwendung neu ausge
 
 
 \subsection{Migration der PostgreSQl-Datenbank}
+\ref{ref:postgres_kata}
 Als nächster und letzter Teil der Anwendung muss nun noch die Datenbank mit ihrem eigenen Kernel versehen werden.
 Dazu wurde zuerst wieder der benötigte Parameter in dem StatefulSet Manifest gesetzt und anschließend die Anwendung ausgerollt.
 

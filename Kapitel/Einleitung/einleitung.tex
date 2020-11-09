@@ -1,6 +1,6 @@
 \chapter{Einleitung}
 
-Die \ac{COVID-19} Pandemisituation in Jahr 2020 stellte auf der ganzen Welt Gunsundheitssysteme auf die Probe. 
+Die \ac{COVID-19} Pandemiesituation in Jahr 2020 stellte auf der ganzen Welt Gesundheitssysteme auf die Probe. 
 Um das Virus bestmöglich bekämpfen zu können wurde das \ac{SORMAS}\footnote{\input{Kapitel/Einleitung/footnotes/sormas}} vom \ac{HZI}\footnote{\input{Kapitel/Einleitung/footnotes/hzi}} angepasst, um mit der Applikation nicht nur infizierte Personen managen zu können, sondern auch Kontaktpersonen zu erfassen.
 Die neu entstandene Applikation bekam den Namen \ac{SORMAS-ÖGD} und wird vom Bund allen deutschen Gesundheitsämtern kostenlos zur Verfügung gestellt. 
 \cite{SORMAS_covid}
@@ -21,17 +21,17 @@ Die Daten, die in der \ac{SORMAS}-Datenbank gespeichert werden sind sogenannte b
 Für die Netzlink als Provider der Applikation bedeutet das, dass die Daten der einzelnen \ac{GAs} streng getrennt werden müssen. 
 Es dürfen nicht zwei Instanzen von \ac{SORMAS-ÖGD} auf der selben Maschine gehostet werden, da durch das Ausnutzen von Sicherheitslücken eventuell ein \ac{GA} die Daten eines Anderen einsehen könnte.
 Um diese Abgrenzung zu garantieren rollt Netzlink mithilfe von Ansible\footnote{https://www.ansible.com/} für jedes \ac{GA} eine eigene \ac{VM} aus, um die Datensicherheit zu gewährleisten.
-Auf der jeweiligen \ac{VM} werden dann mittels Docker \footnote{https://www.docker.com/} mehrere Container gestartet, die gemeinsam die \ac{SORMAS-ÖGD} Appliaktion darstellen.
+Auf der jeweiligen \ac{VM} werden dann mittels Docker \footnote{https://www.docker.com/} mehrere Container gestartet, die gemeinsam die \ac{SORMAS-ÖGD} Applikation darstellen.
 \\
-Für jedes \ac{GA} eine eigene VM zu bauen verbraucht unnötig viele Resourcen:
+Für jedes \ac{GA} eine eigene VM zu bauen verbraucht unnötig viele Ressourcen:
 \begin{itemize}
     \item Arbeitsspeicher für den Overhead der \ac{VM}
-    \item Arbeitsspeicher und CPU Resourcen um das Betriebssystem auf der \ac{VM} zu betreiben
+    \item Arbeitsspeicher und CPU Ressourcen um das Betriebssystem auf der \ac{VM} zu betreiben
     \item Zeit um die \ac{VM} auszurollen und zu starten 
 \end{itemize}
 
 \section{SOLL-Zustand}
-Die resourcenschonendere Lösung wäre, eine Containerplattform wie Kubernetes\footnote{https://kubernetes.io/} zu nutzen.
+Die ressourcenschonendere Lösung wäre, eine Containerplattform wie Kubernetes\footnote{https://kubernetes.io/} zu nutzen.
 So kann viel Overhead eingespart werden, die Applikation kann schneller und zuverlässiger bereitgestellt werden. 
 Die Abgrenzung, und damit der Schutz der Daten muss dabei unbedingt bestehen bleiben.
 
@@ -44,7 +44,7 @@ An dieser Stelle sei nur schon einmal vorweggenommen, dass diese Runtime die Pri
 Die "Container" die in dieser Runtime gestartet werden bekommen einen eigenen Kernel und sind daher eigentlich kleine \ac{VM}s, die sich jedoch wie Container anfühlen und bedienen lassen.
 Hierbei wurde darauf geachtet, dass der Overhead der Instanzen so klein wie möglich gehalten wird, um das Container-Verhalten zu ermöglichen.
 Die Aufgabenstellung ist also, eine Containerplattform aufzubauen die kata als Runtime nutzen kann.
-Anschließend soll das bestehende \ac{SORMAS} mit seiner vollen Funktionalität auf Kubernetes migiert werden.
+Anschließend soll das bestehende \ac{SORMAS} mit seiner vollen Funktionalität auf Kubernetes migriert werden.
 
 \section{Aufbau der Arbeit}
 In Kapitel 2 werden die technischen Grundlagen auf denen dieses Projekt aufbaut erklärt. 
@@ -61,7 +61,7 @@ Im Kapitel 3 wird der Aufbau und die Konfiguration des Clusters behandelt, diese
 \end{itemize}
 
 Kapitel 4 behandelt die Migration der \ac{SORMAS}-Applikation.
-Sormas besteht aus einem Webserver, einer Autoheal-Funktion, einem Backup, einer Java Anwendung auf einem Payara-Server und einer Postgres-Datenbank.
+\ac{SORMAS} besteht aus einem Webserver, einer Autoheal-Funktion, einem Backup, einer Java Anwendung auf einem Payara-Server und einer Postgres-Datenbank.
 Jeder dieser Teile muss auf der \ac{COP} abgebildet werden.
 \\
-Nach der Fertigstellung, in Kapitel 5, wird ein Fazit über das Projekts gezogen, und anschließend im letzten Kapitle 6 wird ein Ausblick auf den Verlauf des Projekts sowie zusätzliche Anwendungsmöglichkeiten gegeben.
+Nach der Fertigstellung, in Kapitel 5, wird ein Fazit über das Projekts gezogen, und anschließend im letzten Kapitel 6 wird ein Ausblick auf den Verlauf des Projekts sowie zusätzliche Anwendungsmöglichkeiten gegeben.

@@ -17,7 +17,7 @@ Hypervisor lassen sich in zwei Typen einordnen:
             Der Hypervisor wird direkt auf dem bare metal Server installiert, womit eine geringe Latenz und hohe Sicherheit garantiert werden.
     \item Typ 2\\
             Zwischen dem bare metal Server und dem Hypervisor ist eine \ac{OS} Schicht installiert. 
-            Dieser Typ findet hauptsächlich bei Endnutzern Verwendung, die auf ihrer lokalen Maschine Virtualisierung betreiben wollen, zum Beipsiel um eine \ac{VM} zu testen bevor sie auf der eigentlichen Virtualisierungsumgebung ausgerollt wird.
+            Dieser Typ findet hauptsächlich bei Endnutzern Verwendung, die auf ihrer lokalen Maschine Virtualisierung betreiben wollen, zum Beispiel um eine \ac{VM} zu testen bevor sie auf der eigentlichen Virtualisierungsumgebung ausgerollt wird.
             Durch die zusätzliche \ac{OS} Schicht ist die Latenz höher als beim ersten Typen.
 \end{itemize}
 
@@ -26,7 +26,7 @@ Durch die Unabhängigkeit von der Hardware ist es möglich die \ac{VM}s probleml
 \subsection{Vorteile von Virtuellen Maschinen}
 Da sich durch diese Technologie mehrere Applikationen und Maschinen dieselben Ressourcen teilen können, ist das Arbeiten mit \ac{VM}s deutlich ressourcenschonender und effizienter als das Arbeiten mit klassischen Hardware-Servern.
 Durch den geringeren Verbrauch von Mitteln zahlt sich das Einsetzen auch aus finanzieller Sicht aus.
-Des weiteren können die Server deutlich agiler gemanaged und vor allem auch schneller bereitgestellt werden.
+Des weiteren können die Server deutlich agiler gemanagt und vor allem auch schneller bereitgestellt werden.
 Die Agilität führt auch dazu, dass Downtimes bei Umzügen oder Updates der Umgebungen reduziert werden.
 
 
@@ -51,12 +51,12 @@ Dadurch können sie deutlich schneller gestartet werden und haben einen deutlich
 Der komplette Speicherplatz-, \ac{CPU}- und Arbeitsspeicher-Verbrauch des \ac{OS} wird somit an Ressourcen auf dem Host-System eingespart.
 
 \subsubsection{Gleichbleibende Umgebung}
-Da in dem Container immer von einer gleichbleibenden Umgebung ausgegangen werden kann, wird die Produktivität der einzelnen Entwicklern deutlich gestiegert.
+Da in dem Container immer von einer gleichbleibenden Umgebung ausgegangen werden kann, wird die Produktivität der einzelnen Entwicklern deutlich gesteigert.
 Diese müssen sich, durch die Verwendung von Container-Technologien, nicht länger mit unterschiedlichen Umgebungsbedingungen auseinandersetzen und können sich auf das Entwickeln neuer Featuren konzentrieren.
 
 \subsubsection{Auf jeden System ausführbar}
 Container sind auf fast jedem System ausführbar. 
-Ob Linux, Mac, Windows, \ac{VM}s, Datacentern oder Bare Metal.
+Ob Linux, Mac, Windows, \ac{VM}s, Datacenter oder Bare Metal.
 Dies wird nicht zuletzt durch das sehr populäre Docker Image Format gewährleistet, das überall sehr verbreitet ist. 
 
 \subsubsection{Isolation}
@@ -99,17 +99,17 @@ Die wichtigsten Unterschiede sind in Tabelle \ref{table:comparison_vm_container}
 
 
 \section{Open Container Initiative}
-Die \ac{OCI} ist eine Organisation, die Standarts für Container Runtimes und Formate erstellt.
+Die \ac{OCI} ist eine Organisation, die Standards für Container Runtimes und Formate erstellt.
 Aktuell werden zwei Spezifikationen von der Organisation bereitgestellt, die \ac{runtime-spec} und die \ac{image-spec}.
 Die Spezifikationen erlauben es verschiedener Software, das bereitgestellt Interface zu implementieren.
 Die \ac{runtime-spec} definiert wie ein Container auf dem Host ausgeführt werden muss. 
 Eine \ac{OCI}-Implementation, wie zum Beispiel Docker, lädt zum Ausführen eines Containers ein \ac{OCI}-kompatibles Container-Image herunter und entpackt dieses in ein Runtime Filesystem Bundle.
-Ohne die Definitionen des \ac{OCI} könnte ein Container der im Docker-Format und die Docker-Runtime(runc) geschrieben wurde auch nur von Docker ausgeführt werden.
+Ohne die Definitionen des \ac{OCI} könnte ein Container der im Docker-Format und die Docker-Runtime(\texttt{runc}) geschrieben wurde auch nur von Docker ausgeführt werden.
 Die \ac{OCI}-Spezifikation ermöglicht es, mit jeder Container-Runtime, die \ac{OCI}-kompatibel ist, ein Docker-Image auszuführen. \cite{oci}
 
 
 
-\section{Kubernets}
+\section{Kubernetes}
 Kubernetes ist eine \ac{FOSS}-Lösung zum managen von containerisierten Anwendungen.
 Das System ermöglicht automatisches Skalieren und Deployen der Anwendungen, sowie integriertes Self-Healing, einfaches Management und Updaten.
 Außerdem ist es vergleichsweise unproblematisch ein Kubernetes-Cluster selbst zu skalieren. 
@@ -123,7 +123,7 @@ Entwickelt wurde die Technologie ursprünglich von Google, die schon seit 15 Jah
 \subsection{Cluster Komponenten}
 \subsubsection{Proxy}
 Der Proxy ist dafür verantwortlich, den Netzwerk-Verkehr zu Services in dem Kubernetes-Cluster zu routen. 
-Dafür muss auf jeder Maschine des Clustern der entsprechende Proxy vorhanden sein, was mit der Kubernetes-Ressourcde \textit{DaemonSet} realisiert werden kann.
+Dafür muss auf jeder Maschine des Clustern der entsprechende Proxy vorhanden sein, was mit der Kubernetes-Ressource \textit{DaemonSet} realisiert werden kann.
 Diese sorgt dafür, dass auf jedem Node des Clusters der entsprechende Container läuft.\cite[S.34]{Kubernetes_up_and_running}
 \subsubsection{DNS}
 Der \ac{DNS}-Server ist für die Namensaulösung und die Entdeckung von Services innerhalb des Clusters verantwortlich. 
@@ -131,11 +131,11 @@ Der \ac{DNS}-Server selbst läuft als ein eigener Service in dem Cluster.
 Damit er funktionieren kann, muss da Cluster mit einem funktionieren Container-Network ausgestattet sein. 
 \cite[S.34 f]{Kubernetes_up_and_running}
 
-\subsection{Containner Runtime Interface}
+\subsection{Container Runtime Interface}
 In Kubernetes 1.5 wurde in Kubernetes das \ac{CRI} eingeführt.
-Dieses Interface erlaubt es dem \textit{kubelet} mit jedet Container Runtime zu arbeiten, die selbst dieses Interface implementiert. 
-\textit{Kubelet} kommuniziert über einen \textit{shim} mit der Runtime, wobei der \textit{shim} als Server funktioniert und \textit{kubelet} als Client.
-Der \textit{\ac{CRI} shim} gibt dann die Befehle an die Runtime weiter, wie in Abbildung \ref{fig:cri} dargestellt.
+Dieses Interface erlaubt es dem \texttt{kubelet} mit jeder Container Runtime zu arbeiten, die selbst dieses Interface implementiert. 
+\texttt{Kubelet} kommuniziert über einen \texttt{shim} mit der Runtime, wobei der \texttt{shim} als Server funktioniert und \texttt{kubelet} als Client.
+Der \texttt{\ac{CRI} shim} gibt dann die Befehle an die Runtime weiter, wie in Abbildung \ref{fig:cri} dargestellt.
 \begin{figure}[ht]
         \caption{Kubernetes \ac{CRI}\cite{kubernetes_cri}}
         \centering
@@ -146,7 +146,7 @@ Der \textit{\ac{CRI} shim} gibt dann die Befehle an die Runtime weiter, wie in A
 
 \subsection{Pods}
 Ein Pod ist der kleinste Workload in einem Kubernetes Cluster, in ihm können ein oder mehrere Container laufen.
-Wenn ein Pod-Manifest an die Kubernetes-\ac{API} geschickt wird, entscheidet der \textit{sheduler} auf welchem der Nodes der Pod gestartet werden soll.
+Wenn ein Pod-Manifest an die Kubernetes-\ac{API} geschickt wird, entscheidet der \texttt{sheduler} auf welchem der Nodes der Pod gestartet werden soll.
 Gestartet und am Leben erhalten wird der Pod dann vom \textit{kubelet daemon}.
 \cite[S.63]{Kubernetes_up_and_running}
 
@@ -170,11 +170,11 @@ Beispielsweise können so \ac{URL}'s wie \textit{service1.host.com} und \textit{
         \label{fig:ingress}
 \end{figure}
 
-\subsection{Repica Set}
+\subsection{Replica Set}
 Ein Replica Set lässt sich als Pod-Manager beschreiben. 
 In dieser Ressource kann definiert werden, wie viele Kopien von welchem speziellen Pod vorhanden sein sollen.
 Das Replica Set wird dann immer dafür sorgen, dass genau so viele Kopien des Pods auf dem Cluster laufen wie deklariert. 
-Wenn ein oder mehrere Pods sterben, die von einem Replica Set gemanaged werden, werden diese automatisch erneut gestartet. 
+Wenn ein oder mehrere Pods sterben, die von einem Replica Set gemanagt werden, werden diese automatisch erneut gestartet. 
 So lange bis wieder die gewünschte Anzahl an Pods erreicht ist.
 Selbst wenn ein kompletter Node ausfällt, kümmert das Replica Set sich darum, dass der Pod auf einem anderen Node gestartet wird.
 \cite[S.103 ff.]{Kubernetes_up_and_running}
@@ -182,9 +182,9 @@ Selbst wenn ein kompletter Node ausfällt, kümmert das Replica Set sich darum, 
 \subsection{Deployment}
 Das Deployment ist vor allem zum managen von neuen Software Releases gedacht. 
 Durch den Rollout-Prozess wird es vereinfacht von einer Version der Software zur nächsten zu wechseln, zum Beispiel durch eingebaute Health-Checks die das Update anhalten wenn zu viele Instanzen der neuen Software-Version in einem Failed-State landen.
-Durch Deploymnets können Downtimes komplett vermieden werden, indem von einer zu updatenden Software nach und nach die einzelnen Container durch Container mit der neuen Software Version ersetzt werden.
+Durch Deployments können Downtimes komplett vermieden werden, indem von einer zu updatenden Software nach und nach die einzelnen Container durch Container mit der neuen Software Version ersetzt werden.
 Wenn der letzte Container mit der alten Software-Version ersetzt wurde, ist das Update der Anwendungen ohne eine einzige Sekunde Downtime durchgeführt wurden.
-Ein Deloyment managet dazu Replica Sets, so wie diese die einzelnen Pods managen.
+Ein Deployment managt dazu Replica Sets, so wie diese die einzelnen Pods managen.
 \cite[S.113 ff.]{Kubernetes_up_and_running}
 
 \subsection{Stateful Set}
@@ -196,12 +196,12 @@ Durch den persistenten Namen ist es für andere Applikationen innerhalb des Clus
 
 \subsection{Config Maps}
 Eine ConfigMap wird genutzt um Konfigurations-Werte für eine Anwendungen zu setzen. 
-Die gesetzen Variablen können das Enviroment das Containers definieren, mit dem sie verknüpft werden.
+Die gesetzen Variablen können das Environment das Containers definieren, mit dem sie verknüpft werden.
 \cite[S.153]{Kubernetes_up_and_running}
 
 \subsection{Secret}
 Secrets sind sehr ähnlich zu Config Maps, mit dem einzigen Unterschied, dass die in ihnen gespeicherten Daten sensibel und deswegen verschlüsselt sind.
-Das bedeutet, dass Sie sich für Passwörter, Securety Token und secret Keys besser eigenen als Config Maps.
+Das bedeutet, dass Sie sich für Passwörter, Security Token und secret Keys besser eigenen als Config Maps.
 \cite[S.157 f.]{Kubernetes_up_and_running}
 
 \subsection{Persistenter Storage}
@@ -219,25 +219,25 @@ In Ihnen werden Größe und Zugriffsart des benötigten Speicherplatzes definier
 
 
 \section{Kata-Runtime}
-Das Kata Containers Projekt ist ein Open Sorce Projekt, das probiert die Vorteile beider zuvor erläuterten Technologien zu kombinieren.
-Die Isolation von \ac{VM}s mit der Geschwindigkeit, dem geringen Management Aufwandt und dem Self-Healing von Contaienern.
+Das Kata Containers Projekt ist ein Open Source Projekt, das probiert die Vorteile beider zuvor erläuterten Technologien zu kombinieren.
+Die Isolation von \ac{VM}s mit der Geschwindigkeit, dem geringen Management Aufwand und dem Self-Healing von Containern.
 \\
-Wenn ein Contaienr-Image in der Kata-Runtime gestartet wird, wird tatsächlich kein Container gestartet, sondern eine lightweight \ac{VM} erstellt.
+Wenn ein Container-Image in der Kata-Runtime gestartet wird, wird tatsächlich kein Container gestartet, sondern eine lightweight \ac{VM} erstellt.
 Diese hat ihren eigenen Kernel, der eine Isolation des Netzwerks, des Speichers und von \ac{I/O} garantiert, jedoch mit einem deutlich kleineren Overhead als konventionelle \ac{VM}s.
-Um einen möglichst großen Anwenderbereich abzudecken arbeitet Kata nach den industriellen Standarts \ac{OCI} und implementiert Kubernetes \ac{CRI}, das im Verlauf der Arbeit noch genauer gerklärt wird. 
-Durch die standatisierten Interfaces ist der Umstieg und das Arbeiten mit Kata in der Theorie sehr unkompliziert. \cite{kata}
+Um einen möglichst großen Anwenderbereich abzudecken arbeitet Kata nach den industriellen Standards \ac{OCI} und implementiert Kubernetes \ac{CRI}, das im Verlauf der Arbeit noch genauer geklärt wird. 
+Durch die standardisierten Interfaces ist der Umstieg und das Arbeiten mit Kata in der Theorie sehr unkompliziert. \cite{kata}
 
 \subsection{Geschichte}
 Das Kata-Container Projekt entstand aus der Fusion von zwei vorhergehenden Projekten:
 \begin{itemize}
-        \item Clear Contaienrs
+        \item Clear Containers
         \\Dieses Projekt von Intel\footnote{https://www.intel.com/content/www/us/en/homepage.html} wurde 2015 ins Leben gerufen, um Sicherheitsbedenken beim Einsatz von Containern aus dem Weg zu räumen.
         Intel erschuf eine alternative Container Runtime, in der Container als minimale \ac{VM}s gestartet wurden, den Fokus setzten sie dabei auf Performance(<100ms boot time) und Sicherheit.\cite[S.1]{Kata_Containers}
-        \item runv
+        \item runV
         \\Ist ein ähnliches Projekt von der Firma "Hyper", die selbst eine Runtime entwickelt haben, die einen Hypervisor nutzt.
         Sie haben Ihren Fokus auf den Support vieler \ac{CPU}-Architekturen und Hypervisor gelegt.\cite[S.1]{Kata_Containers}
 \end{itemize}
-2016 hielten beide Firmen eine Presentation über ihr jeweiliges Produkt auf der \say{Open Source Summit} in Berlin und wurden so aufeinander aufmerksam.
+2016 hielten beide Firmen eine Präsentation über ihr jeweiliges Produkt auf der \say{Open Source Summit} in Berlin und wurden so aufeinander aufmerksam.
 Ein Jahr später, in 2017, wurde beide Produkte unter der \ac{OSF} zu Kata-Containers zusammengeführt.\cite{kata_history}
 
 \subsection{Vergleich mit traditionellen Containern}
@@ -280,10 +280,10 @@ Auf diesem Weg werden aber genauso auch der \textit{stdout}- und \textit{stderr}
 
 
 \section{Ansible}
-Ansible ist eine Software, mit dessen Hilfe Systeme deployed und gemanaged werden können. 
+Ansible ist eine Software, mit dessen Hilfe Systeme deployed und gemanagt werden können. 
 Dazu wird ein Prozess, der eigentlich händisch ausgeführt werden würde, in einem sogenannten Playbook abgebildet.
 Dieses Playbook beschreibt der Reihe nach genau jede Bedingung die erfüllt sein muss, um den Prozess abzuschließen.
-Durch die deklarative Natur von Ansible sind die Ergebnisse reproduzierbart und führen nur die Änderungen aus, die nötig sind.
+Durch die deklarative Natur von Ansible sind die Ergebnisse reproduzierbar und führen nur die Änderungen aus, die nötig sind.
 Wird ein wiederkehrendes Problem einmal in einem Ansible-Playbook gelöst, kann dieses Playbook immer wieder Verwendung finden, wenn das Problem erneut auf einem ähnlichen System auftritt.
 Ansible lässt sich auch einsetzen, um den Umgang mit bereits eingesetzten Technologien zu vereinfachen oder zu automatisieren.
 \cite{ansible}
@@ -295,7 +295,7 @@ Dazu nutzt Ansible die bereits angesprochenen Playbooks, die in \ac{YAML} geschr
 \\
 Wird ein Playbook ausgeführt stellt Ansible auf den einzelnen Systemen mithilfe von einigen Modulen den gewünschten Stand her, und löscht diese Module anschließend wieder. 
 Um die Verbindungen zu den einzelnen Systemen herstellen zu können nutzt die Software standartmäßig \ac{SSH}-Keys, es sind allerdings auch andere Identity-Management Systeme wie z.B. Kerberos unterstützt.
-Die Systeme selbst werden in den Inventory Files aufgelistet und können mit Gruppen und Variabeln ausgestattet werden, um in einer Infrastruktur beispielsweise nur die Webserver oder nur die Datenbank-Server anzusprechen.
+Die Systeme selbst werden in den Inventory Files aufgelistet und können mit Gruppen und Variablen ausgestattet werden, um in einer Infrastruktur beispielsweise nur die Webserver oder nur die Datenbank-Server anzusprechen.
 Wird ein OpenStack oder Ähnliches als Infrastruktur genutzt, kann sogar ein dynamisches Inventory generiert werden.
 \cite{how_ansible_works}
 \\
@@ -303,12 +303,12 @@ In diesem Projekt soll Ansible verwendet werden, um einen reproduzierbaren Weg z
 
 
 \section{Helm}
-Helm ist eine Software, die das Installieren und Updaten von komplexen Kubernetes Aplikationen vereinfachen soll.
+Helm ist eine Software, die das Installieren und Updaten von komplexen Kubernetes Applikationen vereinfachen soll.
 Helm-Charts sind einfach zu erstellen, sie bieten eine gute Versionierung, lassen sich veröffentlichen und teilen, sowie templaten.
 Das Projekt ist ein \ac{CNCF}-Projekt und wird von der Community gepflegt.
 Charts beschreiben komplexe Applikationen und ermöglichen somit eine vereinfachte Installation von umfangreicher Software, außerdem sind diese einfach zu teilen und somit ein guter Weg um Software zu veröffentlichen.
 \cite{helm}
 \\
-Für das \ac{SORMAS}-Projekt wird Helm jedoch auch vor allem wegen der guten Templating Möglichekeiten eingesetzt.
-Verchiedene \ac{GAs} benötigen unterschiedliche Attribute, die alle über das Helm-Templating gesetzt werden könne.
+Für das \ac{SORMAS}-Projekt wird Helm jedoch auch vor allem wegen der guten Templating Möglichkeiten eingesetzt.
+Verschiedene \ac{GAs} benötigen unterschiedliche Attribute, die alle über das Helm-Templating gesetzt werden könne.
 So kann garantiert werden, dass nur an einer einzigen Stelle im Code jemals Anpassungen gemacht werden müssen, wenn eine neue \ac{SORMAS-ÖGD}-Instanz ausgerollt werden soll.

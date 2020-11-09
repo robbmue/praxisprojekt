@@ -15,7 +15,10 @@ Aktuell stellt Netzlink die \ac{SORMAS}-Instanzen auf ihrer VMWare\footnote{http
 \\
 Die Daten, die in der \ac{SORMAS}-Datenbank gespeichert werden sind sogenannte besonders schützenswerte Daten.
 \begin{quote}
-    Bei Gesundheitsdaten gelten jedoch weitaus strengere Regeln als bei einfachen personenbezogenen Daten. Gesundheits-daten sind sensible, besonders schützenswerte Daten und werden im Gesetz als „besondere Kategorie“ personen-bezogener Daten behandelt. Grundsätzlich ist es untersagt, Gesundheitsdaten zu verarbeiten. Dieses Verbot gilt nur dann nicht, wenn einer der gesetzlich geregelten Ausnah-mefälle gegeben ist (Artikel 9 Abs. 2–4 DSGVO). 
+    Bei Gesundheitsdaten gelten jedoch weitaus strengere Regeln als bei einfachen personenbezogenen Daten. 
+    Gesundheitsdaten sind sensible, besonders schützenswerte Daten und werden im Gesetz als „besondere Kategorie“ personenbezogener Daten behandelt. 
+    Grundsätzlich ist es untersagt, Gesundheitsdaten zu verarbeiten. 
+    Dieses Verbot gilt nur dann nicht, wenn einer der gesetzlich geregelten Ausnahmefälle gegeben ist (Artikel 9 Abs. 2–4 \ac{DSGVO}). 
     \cite{Gesundheitsdatenschutz}
 \end{quote}
 Für die Netzlink als Provider der Applikation bedeutet das, dass die Daten der einzelnen \ac{GAs} streng getrennt werden müssen. 
@@ -47,9 +50,9 @@ Die Aufgabenstellung ist also, eine Containerplattform aufzubauen die kata als R
 Anschließend soll das bestehende \ac{SORMAS} mit seiner vollen Funktionalität auf Kubernetes migriert werden.
 
 \section{Aufbau der Arbeit}
-In Kapitel 2 werden die technischen Grundlagen auf denen dieses Projekt aufbaut erklärt. 
-Hierbei wird kurz die Funktionsweise von Kubernetes angerissen, um die Integration von Kata-Containers in Kubernetes nachvollziehen zu können,
-die Unterschiede zwischen \ac{VM}s und und Containern werden herausgearbeitet und die Prinzipien der Kata-Runtime erklärt.
+In Kapitel 2 werden die technischen Grundlagen, auf denen dieses Projekt aufbaut, erklärt. 
+Hierbei wird kurz die Funktionsweise von Kubernetes angerissen, um die Integration von Kata-Containers in Kubernetes nachvollziehen zu können.
+Die Unterschiede zwischen \ac{VM}s und und Containern werden herausgearbeitet und die Prinzipien der Kata-Runtime erklärt.
 \\
 Im Kapitel 3 wird der Aufbau und die Konfiguration des Clusters behandelt, dieses gliedert sich in:
 \begin{itemize}
@@ -60,7 +63,7 @@ Im Kapitel 3 wird der Aufbau und die Konfiguration des Clusters behandelt, diese
     \item Installation eines Kubernetes-Clusters
 \end{itemize}
 
-Kapitel 4 behandelt die Migration der \ac{SORMAS}-Applikation.
+Kapitel 4 behandelt die Migration der \ac{SORMAS}-Applikation, unterteilt in die Migration der Java-Anwendung und der Postgres Datenbank.
 \ac{SORMAS} besteht aus einem Webserver, einer Autoheal-Funktion, einem Backup, einer Java Anwendung auf einem Payara-Server und einer Postgres-Datenbank.
 Jeder dieser Teile muss auf der \ac{COP} abgebildet werden.
 \\

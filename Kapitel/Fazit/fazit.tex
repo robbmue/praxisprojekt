@@ -11,13 +11,13 @@ Auch die Konfiguration für Kubernetes verlief relativ unkompliziert.
 Zwar war die Dokumentation nicht immer auf dem neusten Stand, und vor allem bei der Konfiguration von containerd für Kubernetes mussten einige verschiedene Möglichkeiten ausprobiert werden, dennoch ließen sich recht schnell erste Container in der Kata-Runtime auf Kubernetes starten.
 
 Nun konnte mit der Migration der Anwendung zu Kata begonnen werden.
-An dieser Stellen traten wurden auch die ersten Probleme der Kata-Runtime ersichtlich.
-Was in den lokalen Tests noch problemlos funktionierte, nämlich einfach die Runtime auszutauschen ohne irgendwelche Anpassungen machen zu müssen, ließ sich nun nicht beobachten.
+An dieser Stelle wurden auch die ersten Probleme der Kata-Runtime ersichtlich.
+Was in den lokalen Tests noch problemlos funktionierte, nämlich einfach die Runtime auszutauschen ohne irgendwelche Anpassungen machen zu müssen, konnte leider nicht reproduziert werden.
 Der Payara-Server zerschoss sich selbst die deployte Anwendung weil das Autodeployment nicht registrierte, dass die Anwendung bereits erfolgreich ausgerollt wurde, wie unter Abschnitt \ref{ref:payara_kata} beschrieben wurde.
-Das Base-Image Datenbank bereitete Netzwerkprobleme, die sich nur durch ein Austauschen des Base Images beheben ließen, wei unter Abschnitt \ref{ref:payara_kata} geschildert.
+Das Base-Image der Datenbank bereitete Netzwerkprobleme, die nur durch ein Austauschen des Base Images zu lösen waren, wie unter Abschnitt \ref{ref:payara_kata} geschildert.
 In der Kata-Runtime funktionierte also doch nicht alles komplett problemlos.
 
-Trotzdem ließen sich alle Probleme mit viel Troubleshooting beheben, und die Anwendung ließ sich letztenendes komplett und mit vollem Funktionsumfang migrieren.
+Trotzdem konnten alle Probleme mit viel Troubleshooting behoben, und die Anwendung letztenendes komplett und mit vollem Funktionsumfang migriert werden.
 Der investierte Zeitaufwand ist Anfangs hoch, ermöglicht aber im Endeffekt eine stabilere Anwendung, die exempli causa auch Updates ohne Downtimes ermöglichen kann und somit den administrativen Aufwand deutlich reduziert.
 Außerdem lassen sich einige Ressourcen einsparen, wenn nicht für jede Instanz eine eigene \ac{VM} erstellt werden muss.
 

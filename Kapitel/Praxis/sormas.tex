@@ -1,10 +1,9 @@
 \chapter{Migration von Sormas}
-\todo{sich's aus dem text verbannen}
 
 \section{SORMAS}
 \label{ref:sormas_strucure}
 Um die Anwendung \ac{SORMAS-ÖGD}(im weiteren zur Vereinfachung nur noch \ac{SORMAS}) erfolgreich migrieren zu können, müssen wir diese zunächst in ihre einzelnen Teile runterbrechen und identifizieren wofür die einzelnen Komponenten verantwortlich sind.
-Da \ac{SORMAS} zum aktuellen Zeitpunkt als containerisierte Anwendung ausgerollt wird kann sich hier an der \textit{docker-compose.yaml}\footnote{https://github.com/hzi-braunschweig/SORMAS-Docker/blob/master/docker-compose.yml} orientiert werden.
+Da \ac{SORMAS} zum aktuellen Zeitpunkt als containerisierte Anwendung ausgerollt wird, kann die \textit{docker-compose.yaml}\footnote{https://github.com/hzi-braunschweig/SORMAS-Docker/blob/master/docker-compose.yml} des Projekts als Orientierung genützt werden..
 Diese beschriebt 5 Container, die zusammen die Anwendung bilden.
 \begin{itemize}
     \item sormas-application \\ Der Payara-Server auf dem die \ac{SORMAS}-Applikation gehostet wird.
@@ -30,11 +29,11 @@ Mit diesen wurde überprüft ob schon im voraus Probleme identifiziert werden ko
 \subsection{Docker Kata Integration}
 Als erstes wurde ein Container in der Kata Runtime über die bereits installiert Container Engine Docker gestartet.
 Mit dem Command \texttt{uname -a} kann der in dem Container verwendete Kernel ausgegeben werden. 
-Wenn man diesen mit dem Kernel des Host Systems vergleicht lässt sich feststellen ob beide auf dem gleich Kernel laufen, wie es bei Docker containern der FAll wäre, oder ob ein eigener Kernel für die VM virtualisiert wurde.
+Wenn dieser mit dem Kernel des Host Systems verglichen wird, kann festgestellt werden ob beide auf dem gleich Kernel laufen, wie es bei Docker Containern der Fall wäre, oder ob ein eigener Kernel für die VM virtualisiert wurde.
 \\
-Über Docker lassen sich Kata-Container mit der \texttt{--runtime=kata} starten.
+Über Docker lassen sich Kata-Container mit der Flag \texttt{--runtime=kata} starten.
 Als Images wurden kleine Alpine-Container gewählt.
-Um einen Vergleich zwischen beiden Runtimes zeihen zu können wurde ein kurzen Skript geschrieben, dass die StartUp-Zeiten in eine Datei schreibt.
+Um einen Vergleich zwischen beiden Runtimes ziehen zu können wurde ein kurzen Skript geschrieben, dass die StartUp-Zeiten in eine Datei schreibt.
 Das Skript unter \ref{lst:startuptimes} ergab auf meiner Maschine eine zeitliche Differenz von ca. einer Sekunde wie aus \ref{app:startuptimecomparison} zu entnehmen ist. 
 Die wichtigste Erkenntnis an dieser Stelle ist jedoch, dass die Container in der neuen Runtime problemlos starten, und dazu tatsächlich einen anderen Kernel gestartet bekommen.
 
@@ -50,33 +49,34 @@ echo kata-runtime: >> startuptime_comparison
 \subsection{Webapp in Kata}
 \label{ref:kata_plug_and_play}
 Im nächsten Test soll das Deployment einer Web-Anwendung in Kata gestestet werden. 
-Dafür wurde das Docker-Image einer Website zum Thema der Web\ac{API}s verwendet, das während des letzten Semesters erstellt wurde, gewählt. 
+Dafür wurde das Docker-Image einer Website zum Thema der Web\ac{API}s verwendet, das während des letzten Semesters erstellt wurde, gewählt\footnote{https://hub.docker.com/r/robbmue/webapi}. 
 Tatsächlich mussten hier gar keine Anpassungen oder Ähnliches vorgenommen werden. 
 Die \texttt{runtime}-Flag wurde gesetzt und beim Start konnte der andere Kernel nachgewiesen werden.
-Ansonsten ließen sich keine Änderungen in dem Verhalten der Anwendung feststellen. 
+Ansonsten werden keine Änderungen in dem Verhalten der Anwendung festgestellt. 
 Das Austauschen der Runtime verlief komplett nach dem von Kata Angestrebten Plug-and-Play Prinzip.
 Hier wurden die Möglichkeiten, die durch das einheitliche Verwenden der Schnittstellen ermöglicht werden, deutlich. 
 
 \subsection{PostgreSQl in Kata}
+\label{ref:postgres_kata}
 Als letzter grundlegender Test sollte eine PostgreSQL Anwendung in der Kata-Runtime deployed werden. 
 Dabei wurden aufgrund der simplen Migration der Webapp keine größeren Probleme erwartet.
-Doch an dieser Stelle machten sich zum ersten Mal Probleme mit der Kata-Runtime bemerkbar.
+Doch an dieser Stelle traten zum ersten Mal Probleme mit der Kata-Runtime auf.
 \\
 Das Starten der Anwendung war noch sehr unproblematisch, alle benötigten Variablen konnten über eine enviroment-Datei übertragen werden und die Runtime wie zuvor über die entsprechende Flag definiert werden. 
 Wurde der Container nach dem Start der Anwendung jedoch betreten und man versucht von dort aus in die Postgres Datenbank zu kommen, erhielt man folgenden Fehler:
 \\\texttt{could not connect to server, temporary failure in name resolution}\\
-Die Datenbank ist allerdings von außerhalb erreichbar, wurde kein \texttt{docker exec} in den Container ausgeführt, sondern direkt von der Host-Maschine aus der ZUgriff auf die Datenbank gestartet, konnte diese ohne Probleme bedient und gemanaged werden. 
-Das Problem ließ sich zwar in der dafür aufgebrachten Zeit nicht lösen, da die Datenbank aber trotzdem erreicht wurden konnte sollte diese Einschränkung kein Probleme darstellen. 
+Die Datenbank ist allerdings von außerhalb erreichba.
+Wurde kein \texttt{docker exec} in den Container ausgeführt, sondern direkt von der Host-Maschine aus der Zugriff auf die Datenbank gestartet, konnte diese ohne Probleme bedient und gemanaged werden. 
+Das Problem ließ sich zwar in der dafür eingeplanten Zeit nicht lösen, da die Datenbank aber trotzdem erreicht wurden konnte sollte diese Einschränkung kein Probleme darstellen. 
 
 Die grundlegenden Tests können damit als abgeschlossen betrachtet werden und es kann mit dem nächsten Schritt, dem Übersetzen der docker-compose Datei zu Kubernetes Manifesten, begonnen werden. 
 Zunächst muss dieser Schritt getan werden, damit anschließend die Runtime auf Kata umgestellt und dann gedebugged werden kann. 
 
 
 \section{Migration der Anwendung nach Kubernetes}
-\todo{Umstrukturierung}
 \subsection{Struktur}
 Als erstes wurde die Struktur der Kubernetes Anwendung geplant. 
-Die schon in Absatz \ref{ref:sormas_strucure} festgehalten, können einige Container ignoriert werden, da Ihre Funktion standartmäßig in Kubernetes integriert ist. 
+Wie schon in Absatz \ref{ref:sormas_strucure} festgehalten, können einige Container ignoriert werden, da Ihre Funktion standartmäßig in Kubernetes integriert ist. 
 Die restlichen Container müssen jedoch zu Deployments oder StatefulSets übersetzt werden, mit Services zugänglich gemacht, und mit Secrets sowie ConfigMaps konfiguriert. 
 Außerdem müssen den Anwendungen \ac{PV}s zugeordnet werden und sie müssen mittels eines Ingress erreichbar gemacht werden.
 Der genaue Aufbau wurde in Abbildung \ref{fig:sormas_kubernetes} dargestellt. 
@@ -130,7 +130,7 @@ Außerdem wird auch das StatefulSet auf die gleichen Dateien zugreifen, und so k
 
 Zuletzt werden noch Limits für \ac{CPU} und Memory-Nutzung gesetzt. 
 
-Auf die Manifeste für den \ac{PVC}, die ConfigMap und das Secret soll hier nicht weiter eingegangen werden da diese keine Großen Besonderheiten enthalten. 
+Auf die Manifeste für den \ac{PVC}, die ConfigMap und das Secret soll hier nicht weiter eingegangen werden da diese keine großen Besonderheiten aufweisen. 
 
 \hfill \newline
 \subsubsection{SORMAS StatefulSet}
@@ -155,7 +155,7 @@ Diese gibt die Adresse des \ac{S3} Storage an, sowie den Bucket in den gespeiche
 Außerdem beinhaltet die Repository-Ressource auch das zuvor definierte Secret und bindet dieses so an das Repository.
 \\
 Als nächstes wird die \ac{CRD} \texttt{AppBinding} erstellt. 
-Über dieses AppBinding wird benötigt um auf die Datenbank zuzugreifen. 
+Dieses AppBinding wird benötigt um auf die Datenbank zuzugreifen. 
 Dazu braucht es den Service und Port, sowie das Schema und den Typen der Datenbank und letzten endes ein Secret, aus dem der Datenbanknutzer und sein Password ausgelesen werden können.
 In dieser einen \ac{CRD} sind dann also alle Informationen gesammelt um auf die Datenbank zuzugreifen und in dem Repository ist definiert wohin das Backup gespeichert werden soll.
 Als letztes fehlt also nur noch eine Ressource, die das Backup anstößt.
@@ -170,7 +170,7 @@ In ihr wird
 \end{itemize}
 Stash erzeugt aus diesen \ac{CRD}s dann Ressourcen, mit denen Kubernetes arbeiten kann.
 Alle benötigten Informationen werden in einem Kubernetes nativen CronJob zusammengetragen.
-Ein CronJob in Kubernetes erstellt sich immer zur definierten Zeit einen Job. 
+Ein CronJob in Kubernetes erstellt immer zur definierten Zeit eine Job-Ressource. 
 Ein Job wiederum erstellt einen oder mehrere Container, die nur eine genau abgegrenzte Aufgabe haben, und stellt sicher dass diese erfolgreich terminieren. 
 In diesem Fall ist die Aufgabe das Erstellen das Datenbank Dumps, das Verschlüsseln und Kopieren der verschlüsselten Daten auf den \ac{S3} Storage plus das Löschen der überschüssigen, bereits vorhandenen Datenbank Dumps.
 Nach der erfolgreichen Ausführung all dieser Operationen terminiert der Job und alle Pods werden gestoppt. 
@@ -184,7 +184,7 @@ Als erstes wurde kontrolliert, ob der Payara Server erreichbar ist.
 Dazu muss ein Host-Eintrag auf dem Localhost gesetzt werden, da das Test Cluster nicht in der \ac{DMZ} aufgebaut wurde, keinen \ac{DNS} Eintrag hat und nur als dem Netzlink Netzwerk zu erreichen ist. 
 Wenn der Payara-Server erreichbar ist, wird als nächstes überprüft, ob das \ac{SORMAS}-\ac{GUI} erreichbar ist.
 Auf der \ac{GUI} kann dann gecheckt werden, ob mit den konfigurierten Usern eine Anmeldung durchgeführt werden kann und somit der Login Prozess funktioniert.
-Nachdem sich angemeldet wurde, werden einige Fälle eingetragen, bearbeitet und gelöscht um die Funktionalität der Anwendung sowie die Postgres Integration zu prüfen.
+Nachdem die Anmeldung durchgeführt wurde, werden einige Fälle eingetragen, bearbeitet und gelöscht um die Funktionalität der Anwendung sowie die Postgres Integration zu prüfen.
 
 Um die Autoheal Funktion zu testen, kann einfach der Sormas Pod gelöscht und dann die Erstellung des neuen Pods abbgewartet werden.
 Wenn dieser von dem ReplicaSet wieder gebaut wird, ist die Autoheal Funktion korrekt abgebildet.
@@ -233,12 +233,12 @@ Der Parameter wurde entsprechend gesetzt und die komplette Anwendung wurde ausge
 
 Zuerst schien es als würde die Anwendung auf dem Payara-Server gar nicht starten. 
 Der Payara Server selbst war zwar erreichbar, doch die Anwendung darauf war nicht erreichbar.
-Beim genaueren Beobachten des Server konnte festgestellt werden, dass die \ac{SORMAS}-\ac{GUI} für einige Sekunden erreichbar ist und man sich sogar anmelden kann, bis diese aus irgendeinem Grund wieder verschwandt.
-In den Logs wurden tausende Zeilen Java Stack Traces ausgegeben. \todo{Stack traces nachstellen. Recherche auf Home-Laptop! History ca. Anfang September}
+Beim genaueren Beobachten des Server wurde festgestellt , dass die \ac{SORMAS}-\ac{GUI} für einige Sekunden erreichbar ist und sogar die Anmeldung durchgeführt werden kann, bis die \ac{GUI} aus irgendeinem Grund wieder verschwandt.
+In den Logs wurden tausende Zeilen Java Stack Traces ausgegeben.
 Die Analyse der Logs ergab, dass die Anwendung zu einem bestimmten Zeitpunkt \texttt{successfully autodeployed} wurde, der Payara-Server aber nicht wie unter runc an dieser Stelle den Deployment Process beendete sondern wieder damit begann die Anwendung zu deployen.
 Als diese Erkenntnis gewonnen war, wurde untersucht welche Dateien zu welchen Zeitpunkten im Filesystem erstellt wurden und wie sich diese von dem Deployment-Prozess in runc unterscheiden. 
-Es ließ sich jedoch keine Abweichung während des Deployment Prozesses feststellen.
-Auch nach langer intensiver Recherche und Troubleshooting mit qualifizierten Kollegen konnte kein Grund dafür gefunden werden, dass der Autodeployment-Prozess nicht nach dem erfolgreichen Ausrollen der Anwendung stoppt. 
+Es war jedoch keine Abweichung während des Deployments festzustellen.
+Auch nach langer intensiver Recherche und Troubleshooting mit qualifizierten Kollegen konnte kein Grund dafür gefunden werden, dass das Autodeployment nicht nach dem erfolgreichen Ausrollen der Anwendung stoppt. 
 \\
 Das Autodeployment Feature von Payara muss also für unseren Use-Case umgangen werden. 
 Dazu wurden die offiziellen Dockerfiles der \ac{SORMAS}-Applikation\footnote{https://github.com/hzi-braunschweig/SORMAS-Docker/tree/master/sormas} untersucht. 
@@ -248,7 +248,7 @@ Wird dann der Payara Server mittels \texttt{asadmin start-domain} gestartet vers
 Um zu verhindern, dass der Autodeployment-Prozess die Anwendung immer wieder zerschießt, muss Sie auf einem anderen Weg ausgerollt werden.
 Dazu wurde das \textit{start-server.sh} Skript entsprechend angepasst, sodass die einzelnen \textit{.ear} und \textit{.war} Dateien mittels des \texttt{asadmin deploy} Kommandos ausgerollt werden.
 Mit diesen Änderungen wird die Autodeployment-Funktion komplett ausgesetzt, sodass die Anwendung nun nicht mehr vom Payara-Server selbst abgeschossen werden sollte.
-Es wurde ein neues Container-Image mit diesen Anpassungen erstellt und auf der Docker-Registry\footnote{https://hub.docker.com/repository/docker/robbmue/sormas\_kata} veröffentlicht, damit Kubernetes sich dieses Image ziehen kann.
+Es wurde ein neues Container-Image mit diesen Anpassungen erstellt und auf der Docker-Registry\footnote{https://hub.docker.com/repository/docker/robbmue/sormas\_kata} veröffentlicht, damit Kubernetes dieses Image ziehen kann.
 Nachdem das neue Image in die Manifeste eingebunden, und die Anwendung neu ausgerollt wurde, konnte mit den zuvor unter Abschnitt \ref{ref:tests} beschrieben Tests gezeigt werden, dass der \ac{SORMAS}-Payara nun unter Kata voll funktionsfähig war.
 
 
@@ -257,13 +257,11 @@ Nachdem das neue Image in die Manifeste eingebunden, und die Anwendung neu ausge
 Als nächster und letzter Teil der Anwendung muss nun noch die Datenbank mit ihrem eigenen Kernel versehen werden.
 Dazu wurde zuerst wieder der benötigte Parameter in dem StatefulSet Manifest gesetzt und anschließend die Anwendung ausgerollt.
 
-\todo{Problmestellung auf Laptop recherchieren, ungefähr 10.9.}
-
-Nach ausführlichen Tests mit dem Image des HZI ließen sich die Netzwerk-Probleme noch immer nicht beheben.
+Nach ausführlichen Tests mit dem Image des \ac{HZI} konnte jedoch keine Kommunikation zwischen der Java-Applikation und der Datenbank aufrecht erhalten werden.
 Um die Probleme zu verstehen wurde mit allen möglichen Postgres-Images experimentiert.
-Nach einigen Tests ließ sich feststellen, dass die Probleme ausschließlich in den Alpine-Versionen der Postgres Images auftreten, aber nicht in den Postgres Images auf Debian Basis. 
-Die Herausforderung besteht also darin, das Image des \ac{HZI}, das auf dem Postgres-Image auf Alpine Basis aufbaut, in einem neuen Image abzubilden, das auf dem Postgres-Debian image basiert.
-Die Alpine Version wurde vermutlich gewählt um den Container an sich möglichst klein zu halten. 
+Nach einigen weiteren Tests stand fest, dass die Probleme ausschließlich in den Alpine-Versionen der Postgres Images auftreten, aber nicht in den Postgres Images auf Debian Basis. 
+Die Herausforderung besteht also darin, das Image des \ac{HZI}, das auf dem Postgres-Image auf Alpine Basis aufbaut, in einem neuen Image abzubilden, das auf dem Postgres-Debian Image basiert.
+Die Alpine Version wurde vermutlich gewählt um den Container möglichst klein zu halten. 
 In \ref{lst:alpine_postgres_size} wird die Größe des Images ermittelt.
 Diese beträgt \texttt{450MB}.
 
@@ -292,8 +290,8 @@ REPOSITORY                        TAG        SIZE
 robbmue/postgres_kata             latest     373MB
 \end{lstlisting}
 
-Es wurde ein neues Container-Image mit diesen Anpassungen erstellt und auf der Docker-Registry\footnote{https://hub.docker.com/repository/docker/robbmue/postgres\_kata} veröffentlicht, damit Kubernetes sich dieses Image ziehen kann.
-Nachdem das neue Image in die Manifeste eingebunden, und die Anwendung neu ausgerollt wurde, konnte mit den zuvor unter Abschnitt \ref{ref:tests} beschrieben Tests gezeigt werden, dass die Postgres-Datenabnk nun unter Kata voll funktionsfähig war.
+Es wurde ein neues Container-Image mit diesen Anpassungen erstellt und auf der Docker-Registry\footnote{https://hub.docker.com/repository/docker/robbmue/postgres\_kata} veröffentlicht, damit Kubernetes dieses Image pullen kann.
+Nachdem das neue Image in die Manifeste eingebunden, und die Anwendung neu ausgerollt wurde, konnte mit den zuvor unter Abschnitt \ref{ref:tests} beschrieben Tests gezeigt werden, dass die Postgres-Datenbank nun unter Kata voll funktionsfähig ist.
 
 Das neue Postgres-Dockerfile ist dem Anhang unter \ref{app:small_postgres} zu entnehmen.
 

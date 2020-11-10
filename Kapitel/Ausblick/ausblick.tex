@@ -9,7 +9,7 @@ Dennoch bleiben einige offene Fragen zu beantworten.
 Die wichtigste von allen ist wohl die Frage nach dem Datenschutz-Aspekt.
 Katacontainers ermöglicht es theoretisch, Container Orchestration auch für Anwendungen einsetzen zu können, die besonders schützenswerte Daten enthalten \textbf{wenn} dieser Ansatz auch von einem Datenschützer akzeptiert wird.
 Mit den Ergebnissen des Projekts kann nun ein solcher konsultiert werden. 
-Strukturell sollten keine Unterschiede zwischen einer VM und den katacontainern bestehen, trotzdem sit es wichtig dies von einem Experten bestätigen zu lassen.
+Strukturell sollten keine Unterschiede zwischen einer VM und den katacontainern bestehen, trotzdem ist es wichtig dies von einem Experten bestätigen zu lassen.
 
 Die zweite Frage ist vor allem aus dem wirtschaftlichen Aspekt interessant, nämlich die Frage nach der Ressourceneinsparung.
 Im Rahmen des Projekts konnten keine Benchmarking-Tests durchgeführt werden, da das Projekt an sich schon ein großes Volumen hatte.
@@ -18,7 +18,7 @@ Eine genaue Bestimmung der Werte und der Vergleich mit der aktuellen Virtualisie
 
 Eine letzte Frage die noch angesprochen werden soll ist, ob die Anwendung auch zum horizontalen Skalieren geeignet ist.
 Aktuell ist der Session-Store des Payara-Server in die Anwendung selbst integriert. 
-Dies verhindert, dass der Server horizontal skaliert, da die Anwender immer mit dem Gleichen Server kommunizieren müssen, um ihre Session zu behalten.
+Dies verhindert, dass der Server horizontal skaliert, da die Anwender immer mit dem gleichen Server kommunizieren müssen, um ihre Session zu behalten.
 Wenn der Session-Store ausgelagert werden könnte, würde einer horizontalen Skalierung und Canary Updates nichts im Weg stehen, was eine höhere Ressourceneinsparung und weniger Downtimes ermöglichen würde.
 
 Ein oder zwei dieser Fragen können hoffentlich in der auf diesem Praxisprojekt aufbauenden Bachelor-Arbeit beantwortet werden. 

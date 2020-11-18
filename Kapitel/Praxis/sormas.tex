@@ -2,8 +2,8 @@
 
 \section{SORMAS}
 \label{ref:sormas_strucure}
-Um die Anwendung \ac{SORMAS-ÖGD}(im weiteren zur Vereinfachung nur noch \ac{SORMAS}) erfolgreich migrieren zu können, müssen wir diese zunächst in ihre einzelnen Teile runterbrechen und identifizieren wofür die einzelnen Komponenten verantwortlich sind.
-Da \ac{SORMAS} zum aktuellen Zeitpunkt als containerisierte Anwendung ausgerollt wird, kann die \textit{docker-compose.yaml}\footnote{https://github.com/hzi-braunschweig/SORMAS-Docker/blob/master/docker-compose.yml} des Projekts als Orientierung genützt werden..
+Um die Anwendung \ac{SORMAS-ÖGD}(im weiteren zur Vereinfachung nur noch \ac{SORMAS}) erfolgreich migrieren zu können, müssen wir diese in ihre einzelnen Teile aufteilen und identifizieren wofür die einzelnen Komponenten verantwortlich sind.
+Da \ac{SORMAS} zum aktuellen Zeitpunkt als containerisierte Anwendung ausgerollt wird, kann die \textit{docker-compose.yaml}\footnote{https://github.com/hzi-braunschweig/SORMAS-Docker/blob/master/docker-compose.yml} des Projekts als Orientierung genutzt werden.
 Diese beschriebt 5 Container, die zusammen die Anwendung bilden.
 \begin{itemize}
     \item sormas-application \\ Der Payara-Server auf dem die \ac{SORMAS}-Applikation gehostet wird.
@@ -14,7 +14,7 @@ Diese beschriebt 5 Container, die zusammen die Anwendung bilden.
 \end{itemize}
 Da die Anwendung nach Kubernetes migriert werden soll, können einige der Funktionen von den Kubernetes-eigenen Funktionalitäten übernommen werden. 
 Der Ingress kann die Terminierung der \ac{SSL} Zertifikate managen und wird den Apache Webserver ersetzen.
-Die Autoheal Funktion gehört zu den Grundfunktionen von Kubernetes und muss nicht extra implementiert werden, wenn die Anwendung als ReplicaSet oder Deployment ausgerollt wird.
+Die Autoheal-Funktion gehört zu den Grundfunktionen von Kubernetes und muss nicht extra implementiert werden, wenn die Anwendung als ReplicaSet oder Deployment ausgerollt wird.
 Der Container, der nur die Datenbank Dumps ausführt, kann durch einen Cronjob abgebildet werden. 
 Die einzigen Container die dann noch übernommen werden sind der Payara-Server und die PostgreSQL-Datenbank.
 Zusätzlich müssen Ingress und Cronjob konfiguriert werden. \\
@@ -27,11 +27,11 @@ Noch bevor begonnen wurde das Cluster aufzubauen, wurden erste Test mit der Kata
 Mit diesen wurde überprüft ob schon im voraus Probleme identifiziert werden konnten, die die Umsetzung verhindern würden. 
 
 \subsection{Docker Kata Integration}
-Als erstes wurde ein Container in der Kata Runtime über die bereits installiert Container Engine Docker gestartet.
+Als erstes wurde ein Container in der Kata Runtime über die bereits installierte Container Engine Docker gestartet.
 Mit dem Command \texttt{uname -a} kann der in dem Container verwendete Kernel ausgegeben werden. 
 Wenn dieser mit dem Kernel des Host Systems verglichen wird, kann festgestellt werden ob beide auf dem gleich Kernel laufen, wie es bei Docker Containern der Fall wäre, oder ob ein eigener Kernel für die VM virtualisiert wurde.
 \\
-Über Docker lassen sich Kata-Container mit der Flag \texttt{--runtime=kata} starten.
+Über Docker lassen sich Kata-Container mit dem Parameter \texttt{--runtime=kata} starten.
 Als Images wurden kleine Alpine-Container gewählt.
 Um einen Vergleich zwischen beiden Runtimes ziehen zu können wurde ein kurzen Skript geschrieben, dass die StartUp-Zeiten in eine Datei schreibt.
 Das Skript unter \ref{lst:startuptimes} ergab auf meiner Maschine eine zeitliche Differenz von ca. einer Sekunde wie aus \ref{app:startuptimecomparison} zu entnehmen ist. 
@@ -49,27 +49,26 @@ echo kata-runtime: >> startuptime_comparison
 \subsection{Webapp in Kata}
 \label{ref:kata_plug_and_play}
 Im nächsten Test soll das Deployment einer Web-Anwendung in Kata gestestet werden. 
-Dafür wurde das Docker-Image einer Website zum Thema der Web\ac{API}s verwendet, das während des letzten Semesters erstellt wurde, gewählt\footnote{https://hub.docker.com/r/robbmue/webapi}. 
-Tatsächlich mussten hier gar keine Anpassungen oder Ähnliches vorgenommen werden. 
-Die \texttt{runtime}-Flag wurde gesetzt und beim Start konnte der andere Kernel nachgewiesen werden.
+Dafür wurde das Docker-Image einer Website zum Thema der Web\ac{API}s, das während des letzten Semesters erstellt wurde, gewählt\footnote{https://hub.docker.com/r/robbmue/webapi}. 
+Tatsächlich mussten hier gar keine Anpassungen vorgenommen werden. 
+Der \texttt{runtime}-Parameter wurde gesetzt und beim Start konnte der andere Kernel nachgewiesen werden.
 Ansonsten werden keine Änderungen in dem Verhalten der Anwendung festgestellt. 
-Das Austauschen der Runtime verlief komplett nach dem von Kata Angestrebten Plug-and-Play Prinzip.
+Das Austauschen der Runtime verlief vollständig nach dem von Kata angestrebten Plug-and-Play Prinzip.
 Hier wurden die Möglichkeiten, die durch das einheitliche Verwenden der Schnittstellen ermöglicht werden, deutlich. 
 
 \subsection{PostgreSQl in Kata}
 \label{ref:postgres_kata}
 Als letzter grundlegender Test sollte eine PostgreSQL Anwendung in der Kata-Runtime deployed werden. 
-Dabei wurden aufgrund der simplen Migration der Webapp keine größeren Probleme erwartet.
-Doch an dieser Stelle traten zum ersten Mal Probleme mit der Kata-Runtime auf.
+Während sich zuvor die Runtime ohne Änderungen an dem Verhalten der Applikation austauschen ließ, konnten hier zum ersten Mal Unterschiede registriert werden.
 \\
-Das Starten der Anwendung war noch sehr unproblematisch, alle benötigten Variablen konnten über eine enviroment-Datei übertragen werden und die Runtime wie zuvor über die entsprechende Flag definiert werden. 
+Das Starten der Anwendung war noch sehr unproblematisch, alle benötigten Variablen konnten über eine enviroment-Datei übertragen werden und die Runtime wie zuvor über den entsprechenden Parameter definiert werden. 
 Wurde der Container nach dem Start der Anwendung jedoch betreten und man versucht von dort aus in die Postgres Datenbank zu kommen, erhielt man folgenden Fehler:
 \\\texttt{could not connect to server, temporary failure in name resolution}\\
-Die Datenbank ist allerdings von außerhalb erreichba.
+Die Datenbank ist allerdings von außerhalb erreichbar.
 Wurde kein \texttt{docker exec} in den Container ausgeführt, sondern direkt von der Host-Maschine aus der Zugriff auf die Datenbank gestartet, konnte diese ohne Probleme bedient und gemanaged werden. 
-Das Problem ließ sich zwar in der dafür eingeplanten Zeit nicht lösen, da die Datenbank aber trotzdem erreicht wurden konnte sollte diese Einschränkung kein Probleme darstellen. 
+Das Problem ließ sich zwar in der dafür eingeplanten Zeit nicht lösen, da die Datenbank aber trotzdem erreicht wurden konnte, sollte diese Einschränkung keine Behinderung darstellen. 
 
-Die grundlegenden Tests können damit als abgeschlossen betrachtet werden und es kann mit dem nächsten Schritt, dem Übersetzen der docker-compose Datei zu Kubernetes Manifesten, begonnen werden. 
+Die grundlegenden Tests können damit als abgeschlossen betrachtet werden und es kann mit dem nächsten Schritt, dem Übersetzen der \textit{docker-compose.yaml} zu Kubernetes Manifesten, begonnen werden. 
 Zunächst muss dieser Schritt getan werden, damit anschließend die Runtime auf Kata umgestellt und dann gedebugged werden kann. 
 
 
@@ -77,7 +76,7 @@ Zunächst muss dieser Schritt getan werden, damit anschließend die Runtime auf 
 \subsection{Struktur}
 Als erstes wurde die Struktur der Kubernetes Anwendung geplant. 
 Wie schon in Absatz \ref{ref:sormas_strucure} festgehalten, können einige Container ignoriert werden, da Ihre Funktion standartmäßig in Kubernetes integriert ist. 
-Die restlichen Container müssen jedoch zu Deployments oder StatefulSets übersetzt werden, mit Services zugänglich gemacht, und mit Secrets sowie ConfigMaps konfiguriert. 
+Die restlichen Container müssen jedoch zu Deployments oder StatefulSets übersetzt, mit Services zugänglich gemacht, und mit Secrets sowie ConfigMaps konfiguriert werden. 
 Außerdem müssen den Anwendungen \ac{PV}s zugeordnet werden und sie müssen mittels eines Ingress erreichbar gemacht werden.
 Der genaue Aufbau wurde in Abbildung \ref{fig:sormas_kubernetes} dargestellt. 
 Aus Gründen der Übersichtlichkeit wurde hierbei auf die Darstellung der Backup-Funktionalitäten verzichtet, diese werden später genauer erklärt.
@@ -92,12 +91,12 @@ Aus Gründen der Übersichtlichkeit wurde hierbei auf die Darstellung der Backup
 Als Element zur Trennung und Organisation der einzelnen \ac{SORMAS}-Instanzen wird für jedes \ac{GA} ein eigener Namespace angelegt.
 So kann jeder Pod genau einem \ac{GA} zugeordnet werden.\\
 Wie zuvor angemerkt, ersetzt der Ingress an dieser Stelle den zuvor zur \ac{SSL}-Terminierung benötigten Apache2 Webserver.\\
-Die Datenbank wird in einem StatefulSet ausgerollt, da diese durch die genaue Bestimmung der Pods besser persistent gestaltet werden kann.
-Das StatefulSet erstellt dann seinen benötigten Pod, der über ein \ac{PVC} sein \ac{PV} zugeordnet bekommt. 
+Eine Datenbank wird in einem StatefulSet ausgerollt, da diese durch die genaue Bestimmung der Pods besser persistent gestaltet werden kann.
+Ein StatefulSet erstellt dann seinen benötigten Pod, der über ein \ac{PVC} sein \ac{PV} zugeordnet bekommt. 
 Die Konfiguration des Pods soll ausschließlich in der ConfigMap und dem Secret stattfinden, sodass nur an einer Stelle Anpassungen vorgenommen werden müssen.
-Der Pod kann durch das Einrichtigen eins Services für andere Instanzen im selben Namespace erreichbar gemacht werden.\\
+Der Pod kann durch das Einrichtigen eines Services für andere Instanzen im selben Namespace erreichbar gemacht werden.\\
 Der Payara-Server wird mit einem Deployment-Manifest ausgerollt. 
-Die Eigenschaften des StatefulSets werden nicht benötigt und die Vorteile in Hinsicht auf das erleichterte Updaten der Software werden für zu erwartende Updates nützlich sein.
+Eigenschaften des StatefulSets werden nicht benötigt und Vorteile in Hinsicht auf das erleichterte Updaten der Software werden für zu erwartende Updates nützlich sein.
 Das Deployment erstellt dann das entsprechende ReplicaSet und dieses den Pod. 
 \ac{PV} und Konfiguration werden analog zu Postgres gemanagt. 
 Der Service wählt mittels des Selectors allerdings das ReplicaSet und nicht den Pod selbst.
@@ -108,7 +107,7 @@ Der Service wählt mittels des Selectors allerdings das ReplicaSet und nicht den
 Alle geschriebenen Manifeste, auch die auf die in diesem Abschnitt nicht weiter eingegangen wird, sind auf Github veröffentlicht und können dort unter \url{https://github.com/robbmue/katanetes_sormas/tree/master/manifests} eingesehen werden. 
 
 Beim Schreiben der Manifeste diente die \textit{docker-compose.yml}\footnote{https://github.com/hzi-braunschweig/SORMAS-Docker/blob/master/docker-compose.yml} als Vorlage.
-Aus dieser wurden zunächst einmal alle Services eliminiert die in Kubernetes nicht weiter benötigt werden, namentlich den Autoheal, den Apache2 Webserver und den pg-dump.
+Aus dieser wurden zunächst einmal alle Services eliminiert die in Kubernetes nicht weiter benötigt werden, namentlich der Autoheal, der Apache2 Webserver und der pg-dump.
 Die beiden letzten Teile der Anwendung wurden dann entsprechend der vorhergehenden Planung in jeweils ein Deployment und ein StatefulSet übersetzt.
 Zuerst wurde ein Namespace für die komplette Anwendung angelegt, in dem alle restlichen Teile deployed werden.
 
@@ -123,27 +122,26 @@ So kann der ungewöhnliche Port des Payara-Servers in einen Standart-Port umgewa
 Der Ingress wiederum zeigt auf den Service und Sorgt dafür, dass die Anwendung von außerhalb erreichbar ist.
 
 Des weiteren muss das \ac{PV} mittels des \ac{PVC} eingebunden werden und die Enviroment-Variablen müssen gesetzt werden. 
-Der \ac{PVC} wird unter dem Punkt \texttt{volumes} dem Pod zugewiesen und unter \texttt{volumeMounts} wird der Pfad angegeben, an der das Volume eingehangen werden soll. 
-Die Variablen setzt man unter dem Punkt \texttt{env}, hier kann sowohl auf ein Secret, als auch auf eine ConfigMap zugegriffen werden und diese zu setzen.
+Der \ac{PVC} wird unter dem Punkt \texttt{volumes} dem Pod zugewiesen und unter \texttt{volumeMounts} wird der Pfad angegeben, an der das Volume eingehängt werden soll. 
+Die Variablen setzt man unter dem Punkt \texttt{env}, hier kann sowohl auf ein Secret, als auch auf eine ConfigMap zugegriffen werden.
 Es könnten auch direkt in dem Deployment die korrekten Werte gesetzt werden, mit der ConfigMap und dem Secret wird jedoch erreicht, dass Änderungen nur an möglichst wenigen Stellen vorgenommen werden müssen.
 Außerdem wird auch das StatefulSet auf die gleichen Dateien zugreifen, und so kann garantiert werden, dass beide Anwendungen übereinstimmende Werte geliefert bekommen.
 
 Zuletzt werden noch Limits für \ac{CPU} und Memory-Nutzung gesetzt. 
 
-Auf die Manifeste für den \ac{PVC}, die ConfigMap und das Secret soll hier nicht weiter eingegangen werden da diese keine großen Besonderheiten aufweisen. 
+Auf die Manifeste für den \ac{PVC}, die ConfigMap und das Secret soll hier nicht weiter eingegangen werden. 
 
-\hfill \newline
 \subsubsection{SORMAS StatefulSet}
 Für die Datenbank wurden Konfigurationen analog zu denen des Payara-Servers vorgenommen.
-Der Port 5432 wurde freigegeben, die Enviroment Variablen und der \ac{PVC} wurden eingebunden sowie limits gesetzt.
+Der Port 5432 wurde freigegeben, die Enviroment Variablen und der \ac{PVC} wurden eingebunden sowie Limits gesetzt.
 Eine Besonderheit in diesem Manifest ist, dass mit dem \texttt{args} Parameter gearbeitet werden muss. 
 Es muss eine Änderung an dem Parameter \texttt{max\_prepared\_connections} in der \textit{postgresql.conf} vorgenommen werden, damit \ac{SORMAS} starten kann. 
-Der Postgres Container startet immer mit dem \texttt{psql} Kommando, also kann mittels des Arguments \texttt{-c config\_file=/etc/postgresql/postgresql.conf} die Config eingelesen werden.
+Der Postgres Container startet immer mit dem \texttt{psql} Kommando, also kann mittels des Arguments \newline
+\texttt{-c config\_file=/etc/postgresql/postgresql.conf} die Config eingelesen werden.
 
 Auf den Service und den \ac{PVC} soll an dieser Stelle nicht weiter eingegangen werden, sie können auf Github nachgelesen werden. 
 
 
-\hfill \newline
 \subsubsection{Backup}
 Als Backup-Lösung wurde Stash\footnote{https://stash.run/\#} von AppsCode\footnote{https://appscode.com/} gewählt.
 Die Software erlaubt es unter anderem Backups auf einem lokalen Storage zu erstellen und mit Datenbank Dumps zu arbeiten, nicht nur mit Volume Snapshots.
@@ -181,18 +179,18 @@ Wird nun eine \ac{SORMAS}-Instanz mit diesen Manifesten deployed ist die komplet
 \subsubsection{Tests}
 \label{ref:tests}
 Als erstes wurde kontrolliert, ob der Payara Server erreichbar ist.
-Dazu muss ein Host-Eintrag auf dem Localhost gesetzt werden, da das Test Cluster nicht in der \ac{DMZ} aufgebaut wurde, keinen \ac{DNS} Eintrag hat und nur als dem Netzlink Netzwerk zu erreichen ist. 
+Dazu muss ein Host-Eintrag auf dem Localhost gesetzt werden, da das Test Cluster nicht in der \ac{DMZ} aufgebaut wurde, keinen \ac{DNS} Eintrag hat und nur aus dem Netzlink-Netzwerk zu erreichen ist. 
 Wenn der Payara-Server erreichbar ist, wird als nächstes überprüft, ob das \ac{SORMAS}-\ac{GUI} erreichbar ist.
-Auf der \ac{GUI} kann dann gecheckt werden, ob mit den konfigurierten Usern eine Anmeldung durchgeführt werden kann und somit der Login Prozess funktioniert.
+Auf der \ac{GUI} kann dann gecheckt werden, ob mit dem konfigurierten Usern eine Anmeldung durchgeführt werden kann und somit der Login Prozess funktioniert.
 Nachdem die Anmeldung durchgeführt wurde, werden einige Fälle eingetragen, bearbeitet und gelöscht um die Funktionalität der Anwendung sowie die Postgres Integration zu prüfen.
 
-Um die Autoheal Funktion zu testen, kann einfach der Sormas Pod gelöscht und dann die Erstellung des neuen Pods abbgewartet werden.
-Wenn dieser von dem ReplicaSet wieder gebaut wird, ist die Autoheal Funktion korrekt abgebildet.
+Um die Autoheal-Funktion zu testen, kann einfach der Sormas Pod gelöscht und dann die Erstellung des neuen Pods abbgewartet werden.
+Wenn dieser von dem ReplicaSet wieder gebaut wird, ist die Autoheal-Funktion korrekt abgebildet.
 
-Zuletzt wird die BackUp Funktion überprüft.
+Zuletzt wird die BackUp-Funktion überprüft.
 Dazu werden einige Einträge in der Datenbank vorgenommen, und ein BackUp-Job angestoßen. 
 Nachdem dieser durchgelaufen ist werden die Daten aus der PostgreSQL-Datenbank gelöscht.
-Über einen Restore-Job wird versucht die zuvor gelöschten Daten aus den Datenbank Dump wiederherzustellen. 
+Über einen Restore-Job wird versucht die zuvor gelöschten Daten aus dem Datenbank Dump wiederherzustellen. 
 Wenn der Restore-Job erfolgreich beendet wird und die Daten wieder in der Anwendung auftauchen, ist die Backupfunktionalität positiv getestet.
 
 
@@ -233,22 +231,22 @@ Der Parameter wurde entsprechend gesetzt und die komplette Anwendung wurde ausge
 
 Zuerst schien es als würde die Anwendung auf dem Payara-Server gar nicht starten. 
 Der Payara Server selbst war zwar erreichbar, doch die Anwendung darauf war nicht erreichbar.
-Beim genaueren Beobachten des Server wurde festgestellt , dass die \ac{SORMAS}-\ac{GUI} für einige Sekunden erreichbar ist und sogar die Anmeldung durchgeführt werden kann, bis die \ac{GUI} aus irgendeinem Grund wieder verschwandt.
+Beim genaueren Beobachten des Server wurde festgestellt, dass die \ac{SORMAS}-\ac{GUI} für einige Sekunden erreichbar ist und sogar die Anmeldung durchgeführt werden kann, bis die \ac{GUI} aus irgendeinem Grund wieder verschwandt.
 In den Logs wurden tausende Zeilen Java Stack Traces ausgegeben.
 Die Analyse der Logs ergab, dass die Anwendung zu einem bestimmten Zeitpunkt \texttt{successfully autodeployed} wurde, der Payara-Server aber nicht wie unter runc an dieser Stelle den Deployment Process beendete sondern wieder damit begann die Anwendung zu deployen.
-Als diese Erkenntnis gewonnen war, wurde untersucht welche Dateien zu welchen Zeitpunkten im Filesystem erstellt wurden und wie sich diese von dem Deployment-Prozess in runc unterscheiden. 
+Als diese Erkenntnis gewonnen war, wurde untersucht welche Dateien zu welchem Zeitpunkten im Filesystem erstellt wurden und wie sich diese von dem Deployment-Prozess in runc unterscheiden. 
 Es war jedoch keine Abweichung während des Deployments festzustellen.
 Auch nach langer intensiver Recherche und Troubleshooting mit qualifizierten Kollegen konnte kein Grund dafür gefunden werden, dass das Autodeployment nicht nach dem erfolgreichen Ausrollen der Anwendung stoppt. 
 \\
 Das Autodeployment Feature von Payara muss also für unseren Use-Case umgangen werden. 
 Dazu wurden die offiziellen Dockerfiles der \ac{SORMAS}-Applikation\footnote{https://github.com/hzi-braunschweig/SORMAS-Docker/tree/master/sormas} untersucht. 
 In diesem werden die Skripte \textit{setup-server.sh} und \textit{start-server.sh} genutzt.
-In dem \textit{start-server.sh} Skript zum Deployen der Anwendung als letztes alle \textit{.ear} und \textit{.war} Dateien in den Autodeployment Ordner kopiert.
-Wird dann der Payara Server mittels \texttt{asadmin start-domain} gestartet versucht der Server alle Dateien in dem Autodeployment Ordner auszurollen.
+In dem \textit{start-server.sh} Skript zum Deployen der Anwendung werden als letztes alle \textit{.ear} und \textit{.war} Dateien in den Autodeployment-Ordner kopiert.
+Wird dann der Payara-Server mittels \texttt{asadmin start-domain} gestartet versucht der Server alle Dateien in dem Autodeployment-Ordner auszurollen.
 Um zu verhindern, dass der Autodeployment-Prozess die Anwendung immer wieder zerschießt, muss Sie auf einem anderen Weg ausgerollt werden.
 Dazu wurde das \textit{start-server.sh} Skript entsprechend angepasst, sodass die einzelnen \textit{.ear} und \textit{.war} Dateien mittels des \texttt{asadmin deploy} Kommandos ausgerollt werden.
-Mit diesen Änderungen wird die Autodeployment-Funktion komplett ausgesetzt, sodass die Anwendung nun nicht mehr vom Payara-Server selbst abgeschossen werden sollte.
-Es wurde ein neues Container-Image mit diesen Anpassungen erstellt und auf der Docker-Registry\footnote{https://hub.docker.com/repository/docker/robbmue/sormas\_kata} veröffentlicht, damit Kubernetes dieses Image ziehen kann.
+Mit diesen Änderungen wird die Autodeployment-Funktion komplett ausgesetzt, sodass die Anwendung nun nicht mehr vom Payara-Server selbst zerstört werden sollte.
+Es wurde ein neues Container-Image mit diesen Anpassungen erstellt und auf der Docker-Registry\footnote{https://hub.docker.com/repository/docker/robbmue/sormas\_kata} veröffentlicht, damit Kubernetes dieses Image herunterladen kann.
 Nachdem das neue Image in die Manifeste eingebunden, und die Anwendung neu ausgerollt wurde, konnte mit den zuvor unter Abschnitt \ref{ref:tests} beschrieben Tests gezeigt werden, dass der \ac{SORMAS}-Payara nun unter Kata voll funktionsfähig war.
 
 
@@ -265,14 +263,14 @@ Die Alpine Version wurde vermutlich gewählt um den Container möglichst klein z
 In \ref{lst:alpine_postgres_size} wird die Größe des Images ermittelt.
 Diese beträgt \texttt{450MB}.
 
-\begin{lstlisting}[language=bash, caption={Größe des Postgres Images}, label=lst:alpine_postgres_size]
+\begin{lstlisting}[language=bash, caption={Größe des ursprünglichen Postgres Images}, label=lst:alpine_postgres_size]
 $  ~ docker images | awk 'NR==1 || /^hzibraunschweig\/sormas-postgres/ {printf "%-33s %-10s %s\n", $1, $2, $NF}'
 REPOSITORY                        TAG        SIZE
 hzibraunschweig/sormas-postgres   2.8.0      450MB
 \end{lstlisting}
 
 Die Untersuchung des Images ergab, dass sehr viele Pakete installiert werden müssen um das Modul \texttt{temporal\_tables} für Postgres zu installieren.
-Die folgenden Pakete werden benötigt um das Modul zu installieren und compilieren:
+Die folgenden Pakete werden benötigt um das Modul zu installieren und zu compilieren:
 \begin{itemize}
   \item postgresql-server-dev-10
   \item pgxnclient 
@@ -314,12 +312,12 @@ Alle anderen Variablen werden über die \textit{values.yaml} gesetzt.
 In dieser kann mit Objekten gearbeitet werden, für dieses Projekt gibt es beispielsweise ein Objekt \texttt{image} das die Objekte \texttt{sormas} und \texttt{postgres} enthält, in denen dann Name und Version des Images definiert wird. 
 Dieses Beispiel ist dem Anhang unter \ref{app:values_yaml} beigefügt.
 Auf diese Werte wird ähnlich wie auf den Release-Name zugegriffen, nur dass der Release durch Values ersetzt wird.
-Auf den Sormas Image Namen mit Version wird exempli causa folgenderweise zugegriffen: \texttt{ \{\{ .Values.image.sormas.name \}\}:\{\{ .Values.image.sormas.version\}\} }
+Auf den Sormas Image Namen mit Version wird folgenderweise zugegriffen: \texttt{ \{\{ .Values.image.sormas.name \}\}:\{\{ .Values.image.sormas.version\}\} }
 
-Helm bietet auch die Option, Werte die aus der Values Datei eingelesen werden in Pipelines zu senden um sie in irgendeiner Art zu transformieren. 
+Helm bietet auch die Option, Werte die aus der Values-Datei eingelesen werden in Pipelines zu senden um sie in beliebiger Art zu transformieren. 
 Diese Funktionalität ermöglicht es, die Werte für die Secrets im Klartext in die Values zu schreiben, um sie dann über eine Pipeline zu verschlüsseln, wie unter \ref{app:secret_template} demonstriert.
-Pipelines werden außerdem für das erstellen der ConfigMap Template genutzt. 
-An dieser Stelle wird vor allem die \texttt{quote} Funktion verwendet, damit beim Bearbeiten der Values nicht darauf geachtet werden muss, alle Ints zu Strings umzuwandeln. 
-Nötig ist das, da ConfigMaps ausschließlich mit Strings arbeiten können.
-Für die ConfigMap wird außerdem die \texttt{default} Funktion verwendet, um für Werte die nicht zwingend gesetzt werden müssen einen leeren String einzusetzten falls sie nicht überschrieben werden.
+Pipelines werden außerdem für das Erstellen der ConfigMap-Template genutzt. 
+An dieser Stelle wird vor allem die \texttt{quote}-Funktion verwendet, damit beim Bearbeiten der Values nicht darauf geachtet werden muss, alle Integers zu Strings umzuwandeln. 
+Dies ist nötig, da ConfigMaps ausschließlich mit Strings arbeiten können.
+Für die ConfigMap wird außerdem die \texttt{default}-Funktion verwendet, um für Werte die nicht zwingend gesetzt werden müssen einen leeren String einzusetzten falls sie nicht überschrieben werden.
 Das Ergebnis ist dem Anhang unter \ref{app:configmap_template} beigefügt.

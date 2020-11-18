@@ -1,13 +1,13 @@
 \chapter{Ausblick}
 
-Auch nach dem Abschluss dieses Praxisprojekts, ist die Arbeit an Projekt noch lange nicht beendet.
-Das Praxisprojekt beschränkt sich ausschließlich auf den Aufbau eines Kubernetes-Cluster mit der Kata-Runtime als Container Laufzeit, sowie die Migration der \ac{SORMAS}-Applikation in die neue Laufzeit.
-Zu dem aktuellen Zeitpunkt ist also aufgezeigt wurden, dass die Kata-Runtime grundsätzlich eine Software-Lösung ist, die funktioniert und theoretisch in Produktion eingesetzt werden könnte.
+Auch nach dem Abschluss dieses Praxisprojekts, ist die Arbeit an der Aufgabe nicht fertiggestellt.
+Das Praxisprojekt beschränkt sich ausschließlich auf den Aufbau eines Kubernetes-Cluster mit der Kata-Runtime als Container Laufzeit, sowie die Migration der \ac{SORMAS}-Applikation in die neue Laufzeitumgebung.
+Zu dem aktuellen Zeitpunkt ist also aufgezeigt worden, dass die Kata-Runtime grundsätzlich eine Software-Lösung ist, die funktioniert und in Produktion eingesetzt werden könnte.
 
 Dennoch bleiben einige offene Fragen zu beantworten.
 
 Die wichtigste von allen ist wohl die Frage nach dem Datenschutz-Aspekt.
-Katacontainers ermöglicht es theoretisch, Container Orchestration auch für Anwendungen einsetzen zu können, die besonders schützenswerte Daten enthalten \textbf{wenn} dieser Ansatz auch von einem Datenschützer akzeptiert wird.
+Katacontainers ermöglicht es theoretisch, Container Orchestration auch für Anwendungen einsetzen zu können, die besonders schützenswerte Daten enthalten \textbf{falls} dieser Ansatz auch von einem Datenschützer akzeptiert wird.
 Mit den Ergebnissen des Projekts kann nun ein solcher konsultiert werden. 
 Strukturell sollten keine Unterschiede zwischen einer VM und den katacontainern bestehen, trotzdem ist es wichtig dies von einem Experten bestätigen zu lassen.
 
@@ -16,7 +16,7 @@ Im Rahmen des Projekts konnten keine Benchmarking-Tests durchgeführt werden, da
 Von einer Einsparung kann durchaus ausgegangen werden, da pro Anwendung eine \ac{VM} wegfällt, und mit ihr auch der entsprechende Overhead.
 Eine genaue Bestimmung der Werte und der Vergleich mit der aktuellen Virtualisierungs-Lösung sind für den weiten Fortgang des Projekts von großem Interesse.
 
-Eine letzte Frage die noch angesprochen werden soll ist, ob die Anwendung auch zum horizontalen Skalieren geeignet ist.
+Eine letzte Frage die noch angesprochen werden könnte ist, ob die Anwendung auch zum horizontalen Skalieren geeignet ist.
 Aktuell ist der Session-Store des Payara-Server in die Anwendung selbst integriert. 
 Dies verhindert, dass der Server horizontal skaliert, da die Anwender immer mit dem gleichen Server kommunizieren müssen, um ihre Session zu behalten.
 Wenn der Session-Store ausgelagert werden könnte, würde einer horizontalen Skalierung und Canary Updates nichts im Weg stehen, was eine höhere Ressourceneinsparung und weniger Downtimes ermöglichen würde.

@@ -18,7 +18,7 @@ Hypervisor lassen sich in zwei Typen einordnen:
     \item Typ 2\\
             Zwischen dem bare metal Server und dem Hypervisor ist eine \ac{OS} Schicht installiert. 
             Dieser Typ findet hauptsächlich bei Endnutzern Verwendung, die auf ihrer lokalen Maschine Virtualisierung betreiben wollen, zum Beispiel um eine \ac{VM} zu testen bevor sie auf der eigentlichen Virtualisierungsumgebung ausgerollt wird.
-            Durch die zusätzliche \ac{OS} Schicht ist die Latenz höher als beim ersten Typen.
+            Durch die zusätzliche \ac{OS} Schicht ist die Latenz höher als beim ersten Typ.
 \end{itemize}
 
 Durch die Unabhängigkeit von der Hardware ist es möglich die \ac{VM}s problemlos zwischen verschiedenen Hosts zu verschieben. \\
@@ -34,9 +34,9 @@ Die Agilität führt auch dazu, dass Downtimes bei Umzügen oder Updates der Umg
 \section{Container}
 Die Informationen aus diesem Absatz stammen von Google\cite{containers}, einem der größten Innovatoren auf dem Bereich der Containertechnologien.
 \subsection{Was ist ein Container?}
-Unter einem Container verstehen wir ein vollständiges Paket, dass alle Bausteine enthält um eine bestimmt Applikation zu deployen.
+Unter einem Container verstehen wir ein vollständiges Paket, dass alle Bausteine enthält um eine bestimmte Applikation zu deployen.
 Da alle Bestandteile in Ihm vereint sind ist das Deployment der Anwendung so komplett unabhängig von der zugrundeliegenden Umgebung, was den Prozess vereinfacht und zuverlässiger macht.
-Außerdem erlaubt es diese Isolierung der Applikation auch eine klare Grenze zwischen Anwendungsentwickler und Betrieb zu ziehen:
+Außerdem erlaubt diese Isolierung der Applikation auch eine klare Grenze zwischen Anwendungsentwickler und Betrieb zu ziehen:
 Der Entwickler kann sich darauf verlassen, dass seine Software immer unter den exakt gleichen Bedingungen ausgeführt wird, mit den gleichen Abhängigkeiten, den gleichen Software-Versionen und auf dem gleichen Betriebssystem.
 \\
 Der IT-Betrieb hingegen kann sich darauf verlassen, dass ein Container immer das gleiche Verhalten aufweist. 
@@ -46,7 +46,7 @@ Container können also, wie auch \ac{VM}s, als isolierte Umgebungen betrachtet w
 
 \subsection{Vorteile von Containern}
 
-Container virtualisieren auf \ac{OS}-Level und auf dem gleichen Kernel wie das \ac{OS}.
+Container abstrahieren auf \ac{OS}-Level und auf dem gleichen Kernel wie das \ac{OS}.
 Dadurch können sie deutlich schneller gestartet werden und haben einen deutlich kleineren Overhead als \ac{VM}s, da sie kein komplett funktionsfähiges Betriebssystem benötigen um zu laufen.
 Der komplette Speicherplatz-, \ac{CPU}- und Arbeitsspeicher-Verbrauch des \ac{OS} wird somit an Ressourcen auf dem Host-System eingespart.
 
@@ -55,14 +55,17 @@ Da in dem Container immer von einer gleichbleibenden Umgebung ausgegangen werden
 Diese müssen, durch die Verwendung von Container-Technologien, nicht länger mit unterschiedlichen Umgebungsbedingungen konfrontiert werden und können das Entwickeln neuer Features priorisieren.
 
 \subsubsection{Auf jeden System ausführbar}
-Container sind auf fast jedem System ausführbar. 
-Ob Linux, Mac, Windows, \ac{VM}s, Datacenter oder Bare Metal.
+Container sind auf fast jedem System ausführbar auf dem es Namespacing und cgroups gibt. 
+Ob Linux, Mac, \ac{VM}s, Datacenter oder Bare Metal und sogar Windows.
 Dies wird nicht zuletzt durch das sehr populäre Docker Image Format gewährleistet, das überall sehr verbreitet ist. 
 
 \subsubsection{Isolation}
-Arbeitsspeicher, \ac{CPU} und Speicher sind auf Betriebssystemebene virtualisiert und somit bis zu einem gewissen Level vom Rest des Systems abgegrenzt.
+Arbeitsspeicher, \ac{CPU} und Speicher sind auf Betriebssystemebene durch Namespaces getrennt und somit bis zu einem gewissen Level vom Rest des Systems abgegrenzt.
 Die Isolation ist jedoch weniger stark als bei \ac{VM}s.
 
+\subsubsection{Self-Healing}
+In einer Container Orchestration oder unter zuhilfenahme eines Autoheal-Containers können unhealthy oder fehlgeschlagene Container durchgestartet werden.
+Durch einen Neustart können die aufgetretenen Probleme automatisch gelöst und die Anwendung wieder funktionsfähig gemacht werden. 
 
 
 \section{Vergleich von Virtuellen Maschinen und Containern}
@@ -80,8 +83,8 @@ Die wichtigsten Unterschiede sind in Tabelle \ref{table:comparison_vm_container}
         \hline \\
         Startup-Zeit & Im Minuten Bereich & Millisekunden bis Sekunden \\
         Performance & Großer Overhead, dadurch reltiv langsam & Kleiner Overhead, sehr schnell\\
-        Operating System & Jede \ac{VM} kann auf einem unterschiedlichen \ac{OS} laufen & Alle Container teilen sich das \ac{OS} des Hosts \\
-        Operations & Anpassungen müssen auf den \ac{VM}s vorgenommen werden. Unterschiedliche Maschinen, welche dieselbe Applikation bereitstellen können sich somit trotzdem unterscheiden. & Durch die deklarative Natur der Containertechnologien müssen keine Administratoren den Containern arbeiten. Anpassungen werden ausschließlich in den Images und Dockerfiles vorgenommen. Der Administrative Aufwand ist sehr gering. \\
+        Operating System & Jede \ac{VM} kann ein unterschiedliches \ac{OS} beherbergen & Alle Container teilen sich den \ac{OS}-Kernel des Hosts \\
+        Operations & Anpassungen müssen auf den \ac{VM}s vorgenommen werden. Unterschiedliche Maschinen, welche dieselbe Applikation bereitstellen, können sich somit trotzdem unterscheiden. & Durch die deklarative Natur der Containertechnologien müssen keine Administratoren in den Containern arbeiten. Anpassungen werden ausschließlich in den Images und Dockerfiles vorgenommen. Der Administrative Aufwand ist sehr gering. \\
         Isolation & Hohe Isolation der Anwendung durch eigenen Kernel & Da alle Anwendungen auf einem Kernel laufen, ist die Isolation deutlich geringer \\
         \end{tabular}
         \caption{Unterschiede von VM's und Containers}
@@ -103,7 +106,7 @@ Die Isolation von \ac{VM}s mit der Geschwindigkeit, dem geringen Management Aufw
 \\
 Wenn ein Container-Image in der Kata-Runtime gestartet wird, wird tatsächlich kein Container gestartet, sondern eine lightweight \ac{VM} erstellt.
 Diese hat ihren eigenen Kernel, der eine Isolation des Netzwerks, des Speichers und von \ac{I/O} garantiert, jedoch mit einem deutlich kleineren Overhead als konventionelle \ac{VM}s.
-Um einen möglichst großen Anwenderbereich abzudecken arbeitet Kata nach den industriellen Standards \ac{OCI} und implementiert Kubernetes \ac{CRI}, das im Verlauf der Arbeit noch genauer geklärt wird. 
+Um einen möglichst großen Anwenderbereich abzudecken arbeitet Kata nach den industriellen Standards der \ac{OCI} und implementiert Kubernetes \ac{CRI}, das im Verlauf der Arbeit noch genauer geklärt wird. 
 Durch die standardisierten Interfaces ist der Umstieg und das Arbeiten mit Kata in der Theorie sehr unkompliziert. \cite{kata}
 
 \subsection{Geschichte}
@@ -133,9 +136,9 @@ Traditionelle Container laufen alle auf demselben Kernel.
 Das bedeutet, dass jeder Container direkt auf den Ressourcen(\ac{CPU}, Memory, Network, Storage) des Hosts läuft. 
 Eine Isolation wird durch Namespaces und cgroups realisiert.
 \\
-Bei den Kata-Containern hingegegen werden die Container in \ac{VM}s verpackt, von denen jede seinen eigenen Kernel bekommt.
+Bei den Kata-Containern hingegegen werden die Container in \ac{VM}s verpackt, von denen jede ihren eigenen Kernel bekommt.
 Durch die Hardware-Virtualisierung kann jeder Container nur auf die Ressourcen zugreifen, welche für ihn erstellt wurden. 
-In seinem Kernel laufen keine Prozesse, außer diejenigen der Applikation selbst.  
+In seinem Kernel laufen außer dem \texttt{kata-agent} keine Prozesse, neben denjenigen der Applikation selbst.  
 
 \subsection{Kata Container in Kubernetes}
 
@@ -147,6 +150,7 @@ In seinem Kernel laufen keine Prozesse, außer diejenigen der Applikation selbst
 \end{figure}
 
 In Abbildung \ref{fig:kata_architecture} lässt sich erkennen, dass eine Komponente namens \say{Kata Shim V2} eine große Rolle in der Kubernetes Integration spielt.
+Ein \say{shim} ist dafür entworfen, Container zu monitoren und bedienen.
 Kubernetes kann Pods und \ac{OCI}-kompatible Container mit dem \textit{kata-shimv2} starten. 
 In der \ac{VM}, die von dem \textit{kata-shimv2} gestartet wurde, läuft unter anderem der \textit{kata-agent}, der für das Starten von Container-Prozessen eingesetzt wird.
 Außerdem hostet er einen \ac{gRPC}-Server, über den der \textit{kata-shimv2} mit dem Agent in der \ac{VM} kommunizieren kann.
@@ -162,7 +166,7 @@ Aktuell werden zwei Spezifikationen von der Organisation bereitgestellt, die \ac
 Die Spezifikationen erlauben es verschiedener Software, das bereitgestellt Interface zu implementieren.
 Die \ac{runtime-spec} definiert wie ein Container auf dem Host ausgeführt werden muss. 
 Eine \ac{OCI}-Implementation, wie zum Beispiel Docker, lädt zum Ausführen eines Containers ein \ac{OCI}-kompatibles Container-Image herunter und entpackt dieses in ein Runtime Filesystem Bundle.
-Ohne die Definitionen des \ac{OCI} könnte ein Container der im Docker-Format und die Docker-Runtime(\texttt{runc}) geschrieben wurde auch nur von Docker ausgeführt werden.
+Ohne die Definitionen des \ac{OCI} könnte ein Container der im Docker-Format und für die Docker-Runtime(\texttt{runc}) geschrieben wurde auch nur von Docker ausgeführt werden.
 Die \ac{OCI}-Spezifikation ermöglicht es, mit jeder Container-Runtime, die \ac{OCI}-kompatibel ist, ein Docker-Image auszuführen. \cite{oci}
 
 
@@ -181,20 +185,28 @@ Entwickelt wurde die Technologie ursprünglich von Google, die schon seit 15 Jah
 \cite{kubernetes}
 
 \subsection{Cluster Komponenten}
+
+\subsubsection{kubelet}
+Der \texttt{kubelet} ist ein Agent der auf jeden einzelnen der Nodes vorhanden sein muss.
+Diese Komponente ist die Grundlage aller Weiteren in Kubernetes.
+Der \texttt{kubelet} ist dafür verantwortlich, welche Pods auf den jeweiligen Maschinen laufen.
+
 \subsubsection{Proxy}
 Der Proxy ist dafür verantwortlich, den Netzwerk-Verkehr zu Services in dem Kubernetes-Cluster zu routen. 
-Dafür muss auf jeder Maschine des Clustern der entsprechende Proxy vorhanden sein, was mit der Kubernetes-Ressource \textit{DaemonSet} realisiert werden kann.
+Dafür muss auf jeder Maschine des Clusters der entsprechende Proxy vorhanden sein, was mit der Kubernetes-Ressource \textit{DaemonSet} realisiert werden kann.
 Diese sorgt dafür, dass auf jedem Node des Clusters der entsprechende Container läuft.\cite[S.34]{Kubernetes_up_and_running}
+
 \subsubsection{DNS}
-Der \ac{DNS}-Server ist für die Namensaulösung und die Entdeckung von Services innerhalb des Clusters verantwortlich. 
+Der \ac{DNS}-Server ist für die Namensauflösung und die Entdeckung von Services innerhalb des Clusters verantwortlich. 
 Der \ac{DNS}-Server selbst läuft als ein eigener Service in dem Cluster.
-Damit er funktionieren kann, muss da Cluster mit einem funktionieren Container-Network ausgestattet sein. 
+Damit er funktionieren kann, muss das Cluster mit einem funktionierenden Container-Network ausgestattet sein. 
 \cite[S.34 f]{Kubernetes_up_and_running}
+
 
 \subsection{Container Runtime Interface}
 In Kubernetes 1.5 wurde in Kubernetes das \ac{CRI} eingeführt.
 Dieses Interface erlaubt es dem \texttt{kubelet} mit jeder Container Runtime zu arbeiten, die selbst dieses Interface implementiert. 
-\texttt{Kubelet} kommuniziert über einen \texttt{shim} mit der Runtime, wobei der \texttt{shim} als Server funktioniert und \texttt{kubelet} als Client.
+\texttt{Kubelet} kommuniziert über einen \texttt{shim} mit der Runtime, wobei der \texttt{shim} als Server fungiert und \texttt{kubelet} als Client.
 Der \texttt{\ac{CRI} shim} gibt dann die Befehle an die Runtime weiter, wie in Abbildung \ref{fig:cri} dargestellt.
 \begin{figure}[ht]
         \caption{Kubernetes \ac{CRI}\cite{kubernetes_cri}}
@@ -239,11 +251,11 @@ Selbst wenn ein kompletter Node ausfällt, sorgt das ReplicaSet dafür, dass der
 \cite[S.103 ff.]{Kubernetes_up_and_running}
 
 \subsection{Deployment}
-Das Deployment ist vor allem zum managen von neuen Software Releases gedacht. 
+Das Deployment ist vor allem zum managen von neuen Software Releases gedacht, es ist ein Manager von ReplicaSets. 
 Durch den Rollout-Prozess wird es vereinfacht von einer Version der Software zur nächsten zu wechseln, zum Beispiel durch eingebaute Health-Checks die das Update anhalten wenn zu viele Instanzen der neuen Software-Version in einem Failed-State landen.
 Durch Deployments können Downtimes komplett vermieden werden, indem von einer zu updatenden Software nach und nach die einzelnen Container durch Container mit der neuen Software Version ersetzt werden.
 Wenn der letzte Container mit der alten Software-Version ersetzt wurde, ist das Update der Anwendungen ohne eine einzige Sekunde Downtime durchgeführt wurden.
-Ein Deployment managt dazu Replica Sets, so wie diese die einzelnen Pods managen.
+Ein Deployment managt dazu ReplicaSets, so wie diese die einzelnen Pods managen.
 \cite[S.113 ff.]{Kubernetes_up_and_running}
 
 \subsection{Stateful Set}
@@ -254,7 +266,7 @@ Durch den persistenten Namen ist es für andere Applikationen innerhalb des Clus
 \cite[S.186 f.]{Kubernetes_up_and_running}
 
 \subsection{Config Maps}
-Eine ConfigMap wird genutzt um Konfigurations-Werte für eine Anwendungen zu setzen. 
+ConfigMaps sind \ac{API}-Objekte mit simplen key-value-Paaren und werden genutzt um Konfigurations-Werte für eine Anwendungen zu setzen. 
 Die gesetzen Variablen können das Environment das Containers definieren, mit dem sie verknüpft werden.
 \cite[S.153]{Kubernetes_up_and_running}
 
@@ -266,10 +278,15 @@ Das bedeutet, dass Sie sich für Passwörter, Security Token und secret Keys bes
 \subsection{Persistenter Storage}
 Persistenter Storage in Kubernetes ist standartmäßig nicht gegeben. 
 Die Plattform rechnet damit, dass die einzelnen auf ihr gehosteten Pods regelmäßig ausgetauscht oder zerstört werden. 
-Um in so einem Umfeld persistenten Storage garantieren zu können gibt es in Kubernetes \ac{PV}s und \ac{PVC}s.
+Um in so einem Umfeld persistenten Storage garantieren zu können gibt es in Kubernetes \ac{PV}s und \ac{PVC}s sowie Storage Classes.
+
+\subsubsection{Storage Classes}
+Diese Ressource ermöglicht es den Administratoren die Klassen von Storage zu definieren, die sie anbieten.
+Verschiedene Klassen können sich beispielsweise in Backup-Regeln oder ähnlichem unterscheiden.   
+Ein \ac{PV} muss aus einem von der Storage Class erstellten Volume entnommen werden.
 
 \subsubsection{Persistent Volume}
-Ein \ac{PV} ist ein definierter Storage-Teil das mit einer Storage Class provisioniert wurde.
+Ein \ac{PV} ist ein definierter Abschnitt des Storage der mit einer Storage Class provisioniert wurde.
 Ihr Lifecycle ist unabhängig von dem individuellen Pod der das \ac{PV} benutzt.
 
 \subsubsection{Persistent Volume Claim}
@@ -281,16 +298,18 @@ Ansible ist eine Software, mit dessen Hilfe Systeme deployed und gemanagt werden
 Dazu wird ein Prozess, der eigentlich händisch ausgeführt werden würde, in einem sogenannten Playbook abgebildet.
 Dieses Playbook beschreibt der Reihe nach genau jede Bedingung die erfüllt sein muss, um den Prozess abzuschließen.
 Durch die deklarative Natur von Ansible sind die Ergebnisse reproduzierbar und führen nur die Änderungen aus, die nötig sind.
+Dieses Prinzip nennt sich Idempotenz.
 Wird ein wiederkehrendes Problem einmal in einem Ansible-Playbook gelöst, kann dieses Playbook immer wieder Verwendung finden, wenn das Problem erneut auf einem ähnlichen System auftritt.
 Ansible kann auch eingesetzt werden, um den Umgang mit bereits eingesetzten Technologien zu vereinfachen oder zu automatisieren.
 \cite{ansible}
 
 \subsection{Funktionsweise}
 Ansible ermöglicht es, die gesamte Infrastruktur mitsamt all ihren Verbindungen zu beschreiben. 
-So kann die ganze Umgebung, statt nur einzelne Systeme, auf einmal angepasst werden.
+So kann die ganze Umgebung, statt nur einzelne Systeme, auf einmal angepasst werden\footnote{Sofern diese Umgebung mittels \ac{SSH} erreichbar ist und über Python bedient werden kann. So ist zumindest die gängigste Funktionsart von Ansible.}.
 Dazu nutzt Ansible die bereits angesprochenen Playbooks, die in \ac{YAML} geschrieben sind, einer deklarativen und sehr simpel gestalteten Sprache.
 \\
-Wird ein Playbook ausgeführt stellt Ansible auf den einzelnen Systemen mithilfe von einigen Modulen den gewünschten Stand her, und löscht diese Module anschließend wieder. 
+Wird ein Playbook ausgeführt erstellt Ansible auf dem Host, mithilfe von ausgewählten Modulen, Python-Files. 
+Diese werden über \ac{SSH}-Verbindungen auf die Clients verteilt und dort ausgeführt um den beschiebenen Status herzustellen.
 Um die Verbindungen zu den einzelnen Systemen herstellen zu können nutzt die Software standartmäßig \ac{SSH}-Keys, es sind allerdings auch andere Identity-Management Systeme wie z.B. Kerberos unterstützt.
 Die Systeme selbst werden in den Inventory Files aufgelistet und können mit Gruppen und Variablen ausgestattet werden, um in einer Infrastruktur beispielsweise nur die Webserver oder nur die Datenbank-Server anzusprechen.
 Wird ein OpenStack oder Ähnliches als Infrastruktur genutzt, kann sogar ein dynamisches Inventory generiert werden.

@@ -1,9 +1,8 @@
 \chapter{Konfiguration}
 
 \section{Ingress Service als ClusterIP}
-\hfill \newline
 \label{app:clusterip}
-\begin{lstlisting}[language=yaml]
+\begin{lstlisting}[language=yaml, caption={ingress masnifest}]
 ---
 apiVersion: v1
 kind: Service
@@ -39,7 +38,6 @@ spec:
 
 
 \section{Sormas-Postgres Image auf Debain Basis }
-\hfill \newline
 \label{app:small_postgres}
 \begin{lstlisting}[caption={Dockerfile für ein kleineres Image auf Debian Basis}]
 FROM postgres:10
@@ -63,9 +61,8 @@ COPY setup_sormas.sh /docker-entrypoint-initdb.d/
 
 
 \subsection{Namespace Template}
-\hfill\newline
 \label{app:namespace_template}
-\begin{lstlisting}[language=yaml]
+\begin{lstlisting}[language=yaml, caption={namespace manifest}]
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -73,9 +70,8 @@ metadata:
 \end{lstlisting}
 
 \subsection{Beispiel Templating Werte}
-\hfill \newline
 \label{app:values_yaml}
-\begin{lstlisting}[language=yaml]
+\begin{lstlisting}[language=yaml, caption={templationg example}]
 runtime: kata
 
 image:
@@ -89,9 +85,8 @@ image:
 \end{lstlisting}
 
 \subsection{Secret Template}
-\hfill \newline
 \label{app:secret_template}
-\begin{lstlisting}[language=yaml]
+\begin{lstlisting}[language=yaml, caption={secret manifest}]
 kind: Secret
 apiVersion: v1
 metadata: 
@@ -103,9 +98,8 @@ data:
 \end{lstlisting}
 
 \subsection{ConfigMap Template}
-\hfill \newline
 \label{app:configmap_template}
-\begin{lstlisting}[language=yaml]
+\begin{lstlisting}[language=yaml, caption={configmap manifest}]
 apiVersion: v1
 kind: ConfigMap
 metadata:

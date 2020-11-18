@@ -1,13 +1,13 @@
 \chapter{Einleitung}
 
-Die \ac{COVID-19} Pandemiesituation in Jahr 2020 stellte auf der ganzen Welt Gesundheitssysteme auf die Probe. 
+Die \ac{COVID-19} Pandemiesituation im Jahr 2020 stellte auf der ganzen Welt Gesundheitssysteme auf die Probe. 
 Um das Virus bestmöglich bekämpfen zu können wurde das \ac{SORMAS}\footnote{\input{Kapitel/Einleitung/footnotes/sormas}} vom \ac{HZI}\footnote{\input{Kapitel/Einleitung/footnotes/hzi}} angepasst, um mit der Applikation nicht nur infizierte Personen managen zu können, sondern auch Kontaktpersonen zu erfassen.
 Die neu entstandene Applikation bekam den Namen \ac{SORMAS-ÖGD} und wird vom Bund allen deutschen Gesundheitsämtern kostenlos zur Verfügung gestellt. 
 \cite{SORMAS_covid}
 \\
 Deutschland hat insgesamt rund 400 \ac{GAs} \cite{GAs} von denen zum Zeitpunkt der Verfassung dieses Dokuments\footnote{07.10.2020} bereits 53 mit \ac{SORMAS-ÖGD} ausgestattet sind.
 Diese Zahl nimmt jedoch stetig zu.  
-An dieser Stelle kommt die Firma Netzlink~\ref{app:netzlink} ins Spiel: 
+An dieser Stelle kommt die Firma Netzlink(einige Infos zu Netzlink unter Anhang \ref{app:netzlink}) ins Spiel: 
 Die Firma hat durch eine Ausschreibung einen Vertrag mit dem Bund abgeschlossen, nach dem Netzlink jedem \ac{GA}, das interessiert ist, eine \ac{SORMAS-ÖGD}-Instanz zur Verfügung stellt.
 
 \section{IST-Zustand}
@@ -22,11 +22,11 @@ Die Daten, die in der \ac{SORMAS}-Datenbank gespeichert werden sind sogenannte b
     \cite{Gesundheitsdatenschutz}
 \end{quote}
 Für die Netzlink als Provider der Applikation bedeutet das, dass die Daten der einzelnen \ac{GAs} streng getrennt werden müssen. 
-Es dürfen nicht zwei Instanzen von \ac{SORMAS-ÖGD} auf der selben Maschine gehostet werden, da durch das Ausnutzen von Sicherheitslücken eventuell ein \ac{GA} die Daten eines Anderen einsehen könnte.
+Es dürfen nicht zwei Instanzen von \ac{SORMAS-ÖGD} auf der selben Maschine gehostet werden, da durch das Ausnutzen von Sicherheitslücken eventuell ein \ac{GA} die Daten eines Anderen einsehen könnte oder durch fehlerhafte Administrierung Datensätze vermischt werden können.
 Um diese Abgrenzung zu garantieren rollt Netzlink mithilfe von Ansible\footnote{https://www.ansible.com/} für jedes \ac{GA} eine eigene \ac{VM} aus, um die Datensicherheit zu gewährleisten.
 Auf der jeweiligen \ac{VM} werden dann mittels Docker \footnote{https://www.docker.com/} mehrere Container gestartet, die gemeinsam die \ac{SORMAS-ÖGD} Applikation darstellen.
 \\
-Für jedes \ac{GA} eine eigene VM zu bauen verbraucht unnötig viele Ressourcen:
+Für jedes \ac{GA} eine eigene VM zu bauen verbraucht viele Ressourcen:
 \begin{itemize}
     \item Arbeitsspeicher für den Overhead der \ac{VM}
     \item Arbeitsspeicher und CPU Ressourcen um das Betriebssystem auf der \ac{VM} zu betreiben
@@ -34,17 +34,17 @@ Für jedes \ac{GA} eine eigene VM zu bauen verbraucht unnötig viele Ressourcen:
 \end{itemize}
 
 \section{SOLL-Zustand}
-Die ressourcenschonendere Lösung wäre, eine Containerplattform wie Kubernetes\footnote{https://kubernetes.io/} zu nutzen.
+Eine ressourcenschonendere Lösung wäre, eine Containerplattform wie Kubernetes\footnote{https://kubernetes.io/} zu nutzen.
 So kann viel Overhead eingespart werden, die Applikation kann schneller und zuverlässiger bereitgestellt werden. 
-Die Abgrenzung, und damit der Schutz der Daten muss dabei unbedingt bestehen bleiben.
+Abgrenzung, und damit der Schutz der Daten muss dabei unbedingt bestehen bleiben.
 
 \section{Problemstellung}
 Um den Schutz der besonders schützenswerten Daten zu garantieren muss eine Isolation geschaffen werden, die normalerweise bei einer Containerplattform nicht gegeben ist. 
-Die Datenbank der verschiedenen \ac{GAs} dürfen nicht auf einer Maschine, also auf einem Kernel, laufen.
+Die Datenbank der verschiedenen \ac{GAs} dürfen laut der aktuellen Haltung der Datenschützer nicht auf einer Maschine, also auf einem Kernel, laufen.
 Diese Bedingungen können mit der Container Runtime "Kata-Containers"\footnote{https://katacontainers.io/} erfüllt werden. 
 Die Funktionsweise dieser Runtime wird im Verlauf der Arbeit ausführlich erklärt. 
 An dieser Stelle sei nur schon einmal vorweggenommen, dass diese Runtime die Prinzipien von \ac{VM}s und Containern  verbindet. 
-Die "Container" die in dieser Runtime gestartet werden bekommen einen eigenen Kernel und sind daher eigentlich kleine \ac{VM}s, die sich jedoch wie Container anfühlen und bedienen lassen.
+"Container" die in dieser Runtime gestartet werden bekommen einen eigenen Kernel und sind daher eigentlich kleine \ac{VM}s, die sich jedoch wie Container anfühlen und bedienen lassen.
 Hierbei wurde darauf geachtet, dass der Overhead der Instanzen so klein wie möglich gehalten wird, um das Container-Verhalten zu ermöglichen.
 Die Aufgabenstellung ist also, eine Containerplattform aufzubauen die kata als Runtime nutzen kann.
 Anschließend soll das bestehende \ac{SORMAS} mit seiner vollen Funktionalität auf Kubernetes migriert werden.
@@ -52,11 +52,11 @@ Anschließend soll das bestehende \ac{SORMAS} mit seiner vollen Funktionalität 
 \section{Aufbau der Arbeit}
 In Kapitel 2 werden die technischen Grundlagen, auf denen dieses Projekt aufbaut, erklärt. 
 Hierbei wird kurz die Funktionsweise von Kubernetes angerissen, um die Integration von Kata-Containers in Kubernetes nachvollziehen zu können.
-Die Unterschiede zwischen \ac{VM}s und und Containern werden herausgearbeitet und die Prinzipien der Kata-Runtime erklärt.
+Die Unterschiede zwischen \ac{VM}s und Containern werden herausgearbeitet und die Prinzipien der Kata-Runtime erklärt.
 \\
 Im Kapitel 3 wird der Aufbau und die Konfiguration des Clusters behandelt, dieses gliedert sich in:
 \begin{itemize}
-    \item Hardware Konfiguration
+    \item Hardwarekonfiguration
     \item Vorbereitung des Maschinen
     \item Netzwerk-Konfiguration
     \item Installation und Konfiguration von Kata
@@ -67,4 +67,4 @@ Kapitel 4 behandelt die Migration der \ac{SORMAS}-Applikation.
 \ac{SORMAS} besteht aus einem Webserver, einer Autoheal-Funktion, einem Backup, einer Java Anwendung auf einem Payara-Server und einer Postgres-Datenbank.
 Jeder dieser Teile muss auf der \ac{COP} abgebildet werden.
 \\
-Nach der Fertigstellung, in Kapitel 5, wird ein Fazit über das Projekts gezogen, und anschließend im letzten Kapitel 6 wird ein Ausblick auf den Verlauf des Projekts sowie zusätzliche Anwendungsmöglichkeiten gegeben.
+Nach der Fertigstellung, in Kapitel 5, wird ein Fazit über das Projekt gezogen, und anschließend im letzten Kapitel 6 wird ein Ausblick auf den Verlauf des Projekts sowie zusätzliche Anwendungsmöglichkeiten gegeben.

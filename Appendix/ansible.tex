@@ -1,9 +1,8 @@
 \chapter{Ansible-Files}
 
-\section{hosts}
-\hfill \newline
+\section{Hosts}
 \label{app:hosts_file}
-\begin{lstlisting}[language=bash]
+\begin{lstlisting}[language=bash, caption=hosts]
     [master]
     k8smaster
 
@@ -14,9 +13,8 @@
 \end{lstlisting}
 
 \section{Kata Install}
-\hfill \newline
 \label{app:kata_install}
-\begin{lstlisting}[language=yaml]
+\begin{lstlisting}[language=yaml, caption={ansible role}]
 ---
 
 - name: check for Runtime
@@ -41,10 +39,243 @@
   failed_when: result.stdout.find("is capable of running Kata") == 1
 \end{lstlisting}
 
-\section{Containerd config.toml}
-\hfill \newline
+\section{Disable Swap}
+\label{app:base_role}
+\begin{lstlisting}[language=yaml, caption={base role}]
+---
+- name: Set Timezone to Berlin
+  timezone:
+    name: Europe/Berlin
+- name: Update all packages
+  apt:
+    state: latest
+    upgrade: dist
+    update_cache: yes
+    allow_unauthenticated: yes
+  failed_when: False
+- name: Check if reboot is needed
+  stat:
+    path: /var/run/reboot-required
+  register: reboot_check_result
+- name: Set fact reboot check to false
+  set_fact:
+    reboot_needed: false
+  when: not reboot_check_result.stat.exists
+- name: set fact reboot check to true
+  set_fact:
+    reboot_needed: true
+  when: reboot_check_result.stat.exists
+- name: server update reboot | restart server
+  reboot:
+  when: reboot_needed | bool
+- name: check for swap
+  changed_when: False
+  shell: |
+    swapon -s
+  register: swap_off_status
+- name: Disable SWAP since kubernetes dosnt want swap enabled (1/2)
+  shell: |
+    swapoff -a
+  when: swap_off_status.stdout != ""
+- name: Disable SWAP in fstab since kubernetes dosnt want swap enabled (2/2)
+  replace:
+    path: /etc/fstab
+    regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+    replace: '# \1'
+\end{lstlisting}
+
+\section{Kubernetes Tools}
+\label{app:kube_tools}
+\begin{lstlisting}[language=yaml, caption={tools role}]
+---
+
+- name: add gpg key for k8s
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: add Kubernetes repo
+  apt_repository:
+    repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+
+- name: Update all packages
+  apt:
+    state: latest
+    upgrade: dist
+    update_cache: yes
+  failed_when: False
+
+- name: install kubernetes cni
+  apt:
+    name: {{ item }}
+    state: latest
+  loop: 
+    - kubelet
+    - kubeadm
+    - kubeclt
+    - kubernetes-cni
+\end{lstlisting}
+
+\section{Master Setup}
+\label{app:master_setup}
+\begin{lstlisting}[language=yaml, caption={master role}]
+---
+
+- name: set scrctl config to have debugging tools for kubernetes on master
+  copy:
+    src: "{{ role_path }}/files/crictl.yaml"
+    dest: /etc/crictl.yaml
+
+- name: check if kubelet file exists
+  stat: 
+    path: /etc/kubernetes/kubelet.conf
+  register: kubelet_conf
+
+- name: reset kubernetes status
+  include: reset_master.yml
+  when: kubelet_conf.stat.exists == True
+
+- name: Initialize cluster with kubeadm
+  command: |
+    /usr/bin/kubeadm init \
+    --pod-network-cidr 10.244.0.0/16 \
+    --apiserver-advertise-address 192.168.0.1 \
+    --apiserver-cert-extra-sans {{ extra_sans }} \
+    --token-ttl 24h0m0s \
+    --token {{ token }}
+
+- name: create directory
+  file:
+      path: /home/alberto/.kube 
+      state: directory 
+    
+- name: copy config
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /home/alberto/.kube/config
+    remote_src: yes
+    force: yes
+
+- name: set rights on config
+  file:
+    path: /home/alberto/.kube/config
+    owner: alberto
+    group: alberto
+\end{lstlisting}
+
+\section{Kubernetes Reset}
+\label{app:reset}
+\begin{lstlisting}[language=yaml, caption={reset role}]
+---
+
+- name: remove kubernetes first
+  command: |
+    kubeadm reset -f
+
+- name: reset iptables
+  systemd:
+    name: netfilter-persistent
+    state: restarted
+\end{lstlisting}
+
+\section{Join der Nodes}
+\label{app:join_role}
+\begin{lstlisting}[language=yaml, caption={join role}]
+---
+- name: check if kubelet file exists
+  stat: 
+    path: /etc/kubernetes/kubelet.conf
+  register: kubelet_conf
+
+
+- name: kubeadm reset 
+  command: |
+    kubeadm reset -f
+  when: kubelet_conf.stat.exists == True
+
+- name: set IPv4 Forwarding on all the nodes
+  sysctl:
+      name: net.ipv4.ip_forward 
+      reload: yes
+      state: present 
+      sysctl_set: yes
+      ignoreerrors: no 
+      sysctl_file: /etc/sysctl.conf
+      value: "1" 
+    
+
+- name: kubeadm join
+  command: |
+    kubeadm join --discovery-token-unsafe-skip-ca-verification --token={{ token }} k8smaster:6443
+\end{lstlisting}
+
+\section{Longhorn Deployment}
+\label{app:longhorn}
+\begin{lstlisting}[language=yaml, caption={longhorn role}]
+---
+
+- name: Add an Apt signing key, uses whichever key is at the URL
+  apt_key:
+    url: https://baltocdn.com/helm/signing.asc
+    state: present
+
+- name: install apt-transport-https and pip
+  apt:
+    name: ['apt-transport-https', 'python3-pip']
+    state: latest
+
+- name: install pip libaries for k8s managed ansible
+  pip:
+    name:
+      - openshift  
+      - pyyaml
+      - kubernetes
+      - pyhelm
+
+- name: add helm repo
+  apt_repository:
+    repo: deb https://baltocdn.com/helm/stable/debian/ all main
+    state: present
+
+- name: apt update
+  apt:
+    state: latest
+    upgrade: dist
+    update_cache: yes
+  failed_when: False
+
+- name: install helm to manage deployments
+  apt:
+    name: helm
+    state: latest
+
+- name: add longhorn repo
+  git:
+    repo: https://github.com/longhorn/longhorn
+    dest: /home/alberto/longhorn
+
+- name: add longhorn namespace
+  become_user: alberto
+  k8s:
+    name: longhorn-system
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: deploy longhorn via helm
+  become_user: alberto
+  register: out
+  failed_when: >
+    ("re-use" not in out.stderr) and
+    (out.stderr != '')
+  command: |
+    helm install longhorn /home/alberto/longhorn/chart/ --namespace longhorn-system
+\end{lstlisting}
+
+\chapter{Containerd config.toml}
 \label{app:containerd_config}
-\begin{lstlisting}[language=bash]
+\begin{lstlisting}[language=bash, caption={config.toml}]
 version = 2
 root = "/var/lib/containerd"
 state = "/run/containerd"
@@ -111,254 +342,4 @@ imports = ["/etc/containerd/config.toml"]
            Root = ""
            CriuPath = ""
            SystemdCgroup = false
-\end{lstlisting}
-
-\section{Disable Swap}
-\hfill \newline
-\label{app:base_role}
-\begin{lstlisting}[language=yaml]
----
-
-- name: Set Timezone to Berlin
-  timezone:
-    name: Europe/Berlin
-
-- name: Update all packages
-  apt:
-    state: latest
-    upgrade: dist
-    update_cache: yes
-    allow_unauthenticated: yes
-  failed_when: False
-
-- name: Check if reboot is needed
-  stat:
-    path: /var/run/reboot-required
-  register: reboot_check_result
-
-- name: Set fact reboot check to false
-  set_fact:
-    reboot_needed: false
-  when: not reboot_check_result.stat.exists
-
-- name: set fact reboot check to true
-  set_fact:
-    reboot_needed: true
-  when: reboot_check_result.stat.exists
-
-- name: server update reboot | restart server
-  reboot:
-  when: reboot_needed | bool
-
-- name: check for swap
-  changed_when: False
-  shell: |
-    swapon -s
-  register: swap_off_status
-
-- name: Disable SWAP since kubernetes dosnt want swap enabled (1/2)
-  shell: |
-    swapoff -a
-  when: swap_off_status.stdout != ""
-
-- name: Disable SWAP in fstab since kubernetes dosnt want swap enabled (2/2)
-  replace:
-    path: /etc/fstab
-    regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
-    replace: '# \1'
-\end{lstlisting}
-
-\section{Kubernetes Tools}
-\hfill \newline
-\label{app:kube_tools}
-\begin{lstlisting}[language=yaml]
-  ---
-
-  - name: add gpg key for k8s
-    apt_key:
-      url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-      state: present
-  
-  - name: add Kubernetes repo
-    apt_repository:
-      repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
-      state: present
-  
-  - name: Update all packages
-    apt:
-      state: latest
-      upgrade: dist
-      update_cache: yes
-    failed_when: False
-  
-  
-  - name: install kubernetes cni
-    apt:
-      name: {{ item }}
-      state: latest
-    loop: 
-      - kubelet
-      - kubeadm
-      - kubeclt
-      - kubernetes-cni
-\end{lstlisting}
-
-\section{Master Setup}
-\hfill \newline
-\label{app:master_setup}
-\begin{lstlisting}[language=yaml]
----
-
-- name: set scrctl config to have debugging tools for kubernetes on master
-  copy:
-    src: "{{ role_path }}/files/crictl.yaml"
-    dest: /etc/crictl.yaml
-
-- name: check if kubelet file exists
-  stat: 
-    path: /etc/kubernetes/kubelet.conf
-  register: kubelet_conf
-
-- name: reset kubernetes status
-  include: reset_master.yml
-  when: kubelet_conf.stat.exists == True
-
-- name: Initialize cluster with kubeadm
-  command: |
-    /usr/bin/kubeadm init \
-    --pod-network-cidr 10.244.0.0/16 \
-    --apiserver-advertise-address 192.168.0.1 \
-    --apiserver-cert-extra-sans {{ extra_sans }} \
-    --token-ttl 24h0m0s \
-    --token {{ token }}
-
-- name: create directory
-  file:
-      path: /home/alberto/.kube 
-      state: directory 
-    
-- name: copy config
-  copy:
-    src: /etc/kubernetes/admin.conf
-    dest: /home/alberto/.kube/config
-    remote_src: yes
-    force: yes
-
-- name: set rights on config
-  file:
-    path: /home/alberto/.kube/config
-    owner: alberto
-    group: alberto
-\end{lstlisting}
-
-\section{Kubernetes Reset}
-\hfill \newline
-\label{app:reset}
-\begin{lstlisting}[language=yaml]
----
-
-- name: remove kubernetes first
-  command: |
-    kubeadm reset -f
-
-- name: reset iptables
-  systemd:
-    name: netfilter-persistent
-    state: restarted
-\end{lstlisting}
-
-\section{Join der Nodes}
-\hfill \newline
-\label{app:join_role}
-\begin{lstlisting}[language=yaml]
----
-- name: check if kubelet file exists
-  stat: 
-    path: /etc/kubernetes/kubelet.conf
-  register: kubelet_conf
-
-
-- name: kubeadm reset 
-  command: |
-    kubeadm reset -f
-  when: kubelet_conf.stat.exists == True
-
-- name: set IPv4 Forwarding on all the nodes
-  sysctl:
-      name: net.ipv4.ip_forward 
-      reload: yes
-      state: present 
-      sysctl_set: yes
-      ignoreerrors: no 
-      sysctl_file: /etc/sysctl.conf
-      value: "1" 
-    
-
-- name: kubeadm join
-  command: |
-    kubeadm join --discovery-token-unsafe-skip-ca-verification --token={{ token }} k8smaster:6443
-\end{lstlisting}
-
-\section{Longhorn Deployment}
-\hfill \newline
-\label{app:longhorn}
-\begin{lstlisting}[language=yaml]
----
-
-- name: Add an Apt signing key, uses whichever key is at the URL
-  apt_key:
-    url: https://baltocdn.com/helm/signing.asc
-    state: present
-
-- name: install apt-transport-https and pip
-  apt:
-    name: ['apt-transport-https', 'python3-pip']
-    state: latest
-
-- name: install pip libaries for k8s managed ansible
-  pip:
-    name:
-      - openshift  
-      - pyyaml
-      - kubernetes
-      - pyhelm
-
-- name: add helm repo
-  apt_repository:
-    repo: deb https://baltocdn.com/helm/stable/debian/ all main
-    state: present
-
-- name: apt update
-  apt:
-    state: latest
-    upgrade: dist
-    update_cache: yes
-  failed_when: False
-
-- name: install helm to manage deployments
-  apt:
-    name: helm
-    state: latest
-
-- name: add longhorn repo
-  git:
-    repo: https://github.com/longhorn/longhorn
-    dest: /home/alberto/longhorn
-
-- name: add longhorn namespace
-  become_user: alberto
-  k8s:
-    name: longhorn-system
-    api_version: v1
-    kind: Namespace
-    state: present
-
-- name: deploy longhorn via helm
-  become_user: alberto
-  register: out
-  failed_when: >
-    ("re-use" not in out.stderr) and
-    (out.stderr != '')
-  command: |
-    helm install longhorn /home/alberto/longhorn/chart/ --namespace longhorn-system
 \end{lstlisting}
